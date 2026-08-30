@@ -5,9 +5,11 @@ import { z } from "zod";
 import { resetDbForTests } from "@/lib/db/schema";
 import { publishedRepo, toolCallRepo } from "@/lib/db/repositories";
 import { WebmcpStatusProvider } from "@/components/providers/WebmcpStatusProvider";
+import { AnalysisStatusProvider } from "@/components/providers/AnalysisStatusProvider";
 import { WebmcpStatusBadge } from "@/components/dashboard/WebmcpStatusBadge";
 import { TelemetryDegradedBanner } from "@/components/dashboard/TelemetryDegradedBanner";
 import { DbBootstrap } from "@/components/providers/DbBootstrap";
+import PublishedPage from "@/app/(dashboard)/published/page";
 import { ensureCatalogSeeded } from "@/lib/store-domain/services";
 import { createNoopAdapter } from "@/lib/webmcp/adapter";
 import {
@@ -128,12 +130,14 @@ describe("Cut 2 status surfaces", () => {
     expect(getRegistry().has("compare_products")).toBe(false);
 
     render(
-      <DbBootstrap>
-        <p>booted</p>
-      </DbBootstrap>,
+      <AnalysisStatusProvider>
+        <DbBootstrap>
+          <PublishedPage />
+        </DbBootstrap>
+      </AnalysisStatusProvider>,
     );
 
-    await screen.findByText("booted");
+    expect(await screen.findByText("Live in this tab")).toBeInTheDocument();
     expect(getRegistry().has("compare_products")).toBe(true);
   });
 });

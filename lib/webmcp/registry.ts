@@ -192,6 +192,7 @@ export class ToolRegistry {
 
     try {
       await this.adapter.register(native, { signal: abort.signal });
+      this.notify();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.recordError(`register ${definition.name}: ${message}`);
@@ -215,6 +216,7 @@ export class ToolRegistry {
       this.recordError(`unregister ${name}: ${message}`);
     }
     this.tools.delete(name);
+    this.notify();
   }
 
   /** Invoke as an agent would — used by driver and tests. */
