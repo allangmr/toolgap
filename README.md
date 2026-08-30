@@ -6,7 +6,7 @@ Agent Capability Intelligence for WebMCP. ToolGap observes how AI agents use Web
 
 ## Requirements
 
-- Node.js 24+ (LTS)
+- Node.js 22+
 - pnpm 11.24.0
 
 ## Setup

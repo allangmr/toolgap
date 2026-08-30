@@ -14,6 +14,7 @@ import { seedAllScenarios } from "@/lib/seed/scenarios";
 import { useAnalysisStatus } from "@/components/providers/AnalysisStatusProvider";
 import { useState } from "react";
 import { round } from "@/lib/shared";
+import { sparklineValues } from "@/lib/analytics/sparkline";
 
 export default function OverviewPage() {
   const sessions = useLiveQuery(() => sessionRepo.all(), []) ?? [];
@@ -39,6 +40,21 @@ export default function OverviewPage() {
       : journeys.filter((j) => j.frictionScore > 0).length / journeys.length;
 
   const isEmpty = sessions.length === 0;
+  const sessionSpark = sparklineValues(
+    sessions.map((s) => ({ at: s.startedAt, value: s.callCount })),
+  );
+  const completedSpark = sparklineValues(
+    journeys.map((j) => ({
+      at: j.startedAt,
+      value: j.outcome === "completed" ? 1 : 0,
+    })),
+  );
+  const frictionSpark = sparklineValues(
+    journeys.map((j) => ({
+      at: j.startedAt,
+      value: j.frictionScore > 0 ? 1 : 0,
+    })),
+  );
 
   async function loadSeed() {
     setSeeding(true);
@@ -77,16 +93,22 @@ export default function OverviewPage() {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            <Stat label="Agent sessions" value={sessions.length} />
+            <Stat
+              label="Agent sessions"
+              value={sessions.length}
+              sparkline={sessionSpark}
+            />
             <Stat
               label="Successful journeys"
               value={completed}
               hint={`${journeys.length} total`}
+              sparkline={completedSpark}
             />
             <Stat
               label="Friction rate"
               value={`${round(frictionRate * 100, 1)}%`}
               hint="Calculated from journeys with friction signals"
+              sparkline={frictionSpark}
             />
             <Stat label="Open gaps" value={openGaps.length} />
             <Stat

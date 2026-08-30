@@ -12,12 +12,17 @@ import {
   getTemplate,
 } from "./templates";
 
-function gapTypeToTemplate(type: GapType): TemplateType | null {
-  if (type === "COMPARE") return "COMPARE";
-  if (type === "AVAILABILITY_BATCH") return "AVAILABILITY_BATCH";
-  if (type === "BULK_READ") return "BULK_READ";
-  if (type === "FILTER") return "BULK_READ";
-  return null;
+export const GAP_TO_TEMPLATE: Record<GapType, TemplateType | null> = {
+  COMPARE: "COMPARE",
+  AVAILABILITY_BATCH: "AVAILABILITY_BATCH",
+  BULK_READ: "BULK_READ",
+  FILTER: null,
+  FAILURE_LOOP: null,
+  UNKNOWN: null,
+};
+
+export function templateForGapType(type: GapType): TemplateType | null {
+  return GAP_TO_TEMPLATE[type];
 }
 
 export function proposeToolName(
@@ -37,7 +42,7 @@ export function buildRecommendation(
     createdBy?: Actor;
   } = {},
 ): Recommendation | null {
-  const templateType = gapTypeToTemplate(gap.type);
+  const templateType = templateForGapType(gap.type);
   if (!templateType) return null;
 
   const template = getTemplate(templateType);

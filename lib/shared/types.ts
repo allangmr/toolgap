@@ -56,6 +56,7 @@ export type GapType =
   | "BULK_READ"
   | "AVAILABILITY_BATCH"
   | "FILTER"
+  | "FAILURE_LOOP"
   | "UNKNOWN";
 
 export interface ResultMeta {

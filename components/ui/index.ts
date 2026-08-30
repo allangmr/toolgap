@@ -9,3 +9,4 @@ export { Sparkline } from "./Sparkline";
 export { Stat } from "./Stat";
 export { Timeline, TimelineItem } from "./Timeline";
 export { Button } from "./Button";
+export { Pager } from "./Pager";

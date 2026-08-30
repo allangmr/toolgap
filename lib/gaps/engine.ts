@@ -1,6 +1,7 @@
 import { createId, mean, nowMs, round } from "@/lib/shared";
 import type {
   CapabilityGap,
+  EntityType,
   FrictionSignal,
   FrictionType,
   GapStatus,
@@ -23,7 +24,10 @@ export const gapEngineConfig: GapEngineConfig = {
   dismissalCooldownMs: 7 * 24 * 60 * 60 * 1000,
 };
 
-function frictionToGapType(type: FrictionType, entityType?: string): GapType {
+export function frictionToGapType(
+  type: FrictionType,
+  entityType?: EntityType,
+): GapType {
   switch (type) {
     case "MULTI_ENTITY_INSPECTION":
       return "COMPARE";
@@ -32,7 +36,9 @@ function frictionToGapType(type: FrictionType, entityType?: string): GapType {
     case "REPEATED_SEQUENCE":
     case "PARAMETER_ITERATION":
       return "FILTER";
-    default:
+    case "FAILURE_LOOP":
+      return "FAILURE_LOOP";
+    case "EXCESSIVE_CALLS":
       return "UNKNOWN";
   }
 }
@@ -47,7 +53,9 @@ function titleFor(type: GapType, entityType: string): string {
       return `Missing bulk read for ${entityType}`;
     case "FILTER":
       return "Search results may lack fields agents need";
-    default:
+    case "FAILURE_LOOP":
+      return "Agents retry the same failing tool";
+    case "UNKNOWN":
       return "Unclassified capability gap";
   }
 }

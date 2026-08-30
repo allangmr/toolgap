@@ -43,11 +43,16 @@ export function AnalysisStatusProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void refresh();
-    const id = setInterval(() => {
+    const timeoutId = window.setTimeout(() => {
+      void refresh();
+    }, 0);
+    const intervalId = window.setInterval(() => {
       if (document.visibilityState === "visible") void refresh();
     }, 30_000);
-    return () => clearInterval(id);
+    return () => {
+      window.clearTimeout(timeoutId);
+      window.clearInterval(intervalId);
+    };
   }, [refresh]);
 
   return (

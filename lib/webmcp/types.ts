@@ -16,10 +16,17 @@ export interface NativeToolDefinition {
   execute: (params: Record<string, unknown>) => Promise<McpToolResult>;
 }
 
+export interface AdapterRegisterOptions {
+  signal?: AbortSignal;
+}
+
 export interface WebmcpAdapter {
   kind: "native" | "polyfill" | "noop";
   available: boolean;
-  register(def: NativeToolDefinition): void;
+  register(
+    def: NativeToolDefinition,
+    options?: AdapterRegisterOptions,
+  ): Promise<void>;
   unregister(name: string): void;
 }
 
