@@ -105,8 +105,21 @@ export async function publishRecommendation(
 
   const gap = await gapRepo.get(rec.gapId);
   if (gap) {
+    const published = transitionGap(
+      { ...gap, recommendationId: rec.id },
+      "published",
+      "human",
+    );
     await gapRepo.put(
-      transitionGap({ ...gap, recommendationId: rec.id }, "published", "human"),
+      transitionGap(
+        {
+          ...published,
+          resolvedAt: nowMs(),
+          resolvedByCapabilityId: capability.id,
+        },
+        "resolved",
+        "system",
+      ),
     );
   }
 

@@ -196,6 +196,12 @@ export default function GapDetailClient({
           <Badge tone="info">inferred: {gap.detectedIntent}</Badge>
           <Badge tone="neutral">confidence {round(gap.confidence, 2)}</Badge>
         </div>
+        {gap.status === "resolved" && gap.resolvedByCapabilityId ? (
+          <p className="mt-2 text-sm text-muted">
+            Resolved by publishing capability {gap.resolvedByCapabilityId.slice(0, 8)}
+            {gap.resolvedAt ? ` at ${formatTimestamp(gap.resolvedAt)}` : ""}.
+          </p>
+        ) : null}
       </div>
 
       <div className="flex flex-wrap gap-2" role="group" aria-label="Gap actions">
@@ -220,7 +226,9 @@ export default function GapDetailClient({
             Publish…
           </Button>
         ) : null}
-        {gap.status !== "dismissed" && gap.status !== "published" ? (
+        {gap.status !== "dismissed" &&
+        gap.status !== "published" &&
+        gap.status !== "resolved" ? (
           <Button variant="ghost" onClick={() => setDismissOpen(true)} disabled={busy}>
             Dismiss…
           </Button>

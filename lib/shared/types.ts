@@ -179,6 +179,8 @@ export interface CapabilityGap {
   statusHistory: StatusHistoryEntry[];
   dismissalReason?: string;
   dismissedUntil?: number;
+  resolvedAt?: number;
+  resolvedByCapabilityId?: string;
 }
 
 export interface EstimatedBenefit {

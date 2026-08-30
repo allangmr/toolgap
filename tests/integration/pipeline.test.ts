@@ -113,6 +113,11 @@ describe("webmcp registry instrumentation", () => {
     expect(events.length).toBeGreaterThanOrEqual(1);
     expect(events[0]!.origin).toBe("dynamic");
     expect(events[0]!.capabilityId).toBe(cap.id);
+
+    const resolvedGap = await gapRepo.get(gap.id);
+    expect(resolvedGap?.status).toBe("resolved");
+    expect(resolvedGap?.resolvedByCapabilityId).toBe(cap.id);
+    expect(resolvedGap?.resolvedAt).toBeDefined();
   });
 });
 

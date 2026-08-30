@@ -191,9 +191,11 @@ export function mergeSignalsIntoGaps(
           lastDetectedAt: now,
           detectedIntent: relevantIntent,
           status:
-            existing.status === "dismissed" && meetsSurface
-              ? "detected"
-              : existing.status,
+            existing.status === "resolved"
+              ? "resolved"
+              : existing.status === "dismissed" && meetsSurface
+                ? "detected"
+                : existing.status,
           statusHistory:
             existing.status === "dismissed" && meetsSurface
               ? [
