@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { TelemetryDegradedBanner } from "@/components/dashboard/TelemetryDegradedBanner";
 import { WebmcpStatusProvider } from "@/components/providers/WebmcpStatusProvider";
 import { DbBootstrap } from "@/components/providers/DbBootstrap";
 import "./globals.css";
@@ -34,7 +35,10 @@ export default function RootLayout({
           Skip to main content
         </a>
         <WebmcpStatusProvider>
-          <DbBootstrap>{children}</DbBootstrap>
+          <DbBootstrap>
+            <TelemetryDegradedBanner />
+            {children}
+          </DbBootstrap>
         </WebmcpStatusProvider>
       </body>
     </html>

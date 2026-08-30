@@ -2,26 +2,31 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { ensureDefaults } from "@/lib/db/repositories";
+import { syncActiveCapabilities } from "@/lib/publishing/publish";
 import { requestPersistentStorage } from "@/lib/telemetry/recorder";
+import { getRegistry } from "@/lib/webmcp/registry";
 
-/**
- * Ensures IndexedDB defaults exist outside liveQuery read contexts.
- */
 export function DbBootstrap({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    void (async () => {
-      try {
-        await ensureDefaults();
-        await requestPersistentStorage();
-      } finally {
-        if (!cancelled) setReady(true);
-      }
-    })();
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        try {
+          await ensureDefaults();
+          await requestPersistentStorage();
+          const registry = getRegistry();
+          await registry.whenReady();
+          await syncActiveCapabilities();
+        } finally {
+          if (!cancelled) setReady(true);
+        }
+      })();
+    }, 0);
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
     };
   }, []);
 
