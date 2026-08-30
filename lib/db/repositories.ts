@@ -377,6 +377,23 @@ export async function resetAllData(): Promise<void> {
   await db.schemaMeta.put(DEFAULT_META);
 }
 
+export async function clearTelemetryData(): Promise<void> {
+  const db = getDb();
+  await Promise.all([
+    db.toolCalls.clear(),
+    db.sessions.clear(),
+    db.journeys.clear(),
+    db.frictionSignals.clear(),
+    db.capabilityGaps.clear(),
+    db.recommendations.clear(),
+    db.simulations.clear(),
+    db.metricSnapshots.clear(),
+    db.carts.clear(),
+    db.orders.clear(),
+  ]);
+  await db.schemaMeta.put(DEFAULT_META);
+}
+
 export async function clearDerivedData(): Promise<void> {
   await Promise.all([
     journeyRepo.clear(),
