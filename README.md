@@ -4,6 +4,16 @@
 
 Agent Capability Intelligence for WebMCP. ToolGap observes how AI agents use WebMCP tools on your site, reconstructs journeys, detects capability gaps, recommends safe template-based tools, lets you simulate and approve them, then measures before/after impact.
 
+## Why WebMCP
+
+Agents already visit your site. Without WebMCP they scrape HTML, you cannot tell an agent from a bounce, and you learn nothing about what they needed. WebMCP changes both directions of that exchange, and ToolGap only works because of it:
+
+- Every agent action is a typed tool call with a name, parameters, and an outcome. That structure is what lets ToolGap reconstruct journeys and measure friction. Page-view analytics cannot see intent; tool telemetry is intent.
+- The gap becomes computable. When an agent calls `get_product` seven times in a row to compare items, the missing `compare_products` capability is visible in the call log itself.
+- The fix ships through the same channel. ToolGap publishes the recommended tool with `navigator.modelContext.registerTool` at runtime. No app release, no API gateway change, and the next agent session already has the capability.
+
+What people and agents now do together: agents get the tool they were fumbling toward, and the site owner stays in the loop. Every published capability is a safe, read-only template that a human simulated, reviewed, and approved, and its before/after impact is measured on real agent traffic.
+
 ## Requirements
 
 - Node.js 22+
