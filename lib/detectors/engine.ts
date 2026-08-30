@@ -63,15 +63,26 @@ export const multiEntityInspection: Detector = {
     const config = ctx.config ?? detectorConfig;
     const hasSearch = journey.steps.some((s) => s.toolName === "search_products");
     const productSteps = journey.steps.filter((s) => s.toolName === "get_product");
-    const entities = new Set(productSteps.flatMap((s) => s.entityIds));
-    if (!hasSearch || entities.size < config.multiEntityMin) return null;
+    // Compare = search once, then inspect many. Interleaved search→get is FILTER.
+    let cluster = new Set<string>();
+    let entitiesInspected = 0;
+    for (const step of journey.steps) {
+      if (step.toolName === "search_products") {
+        cluster = new Set();
+        continue;
+      }
+      if (step.toolName !== "get_product") continue;
+      for (const id of step.entityIds) cluster.add(id);
+      if (cluster.size > entitiesInspected) entitiesInspected = cluster.size;
+    }
+    if (!hasSearch || entitiesInspected < config.multiEntityMin) return null;
 
     const availabilityFollowUps = journey.steps.filter(
       (s) => s.toolName === "get_availability",
     ).length;
     const hasAvailabilityFollowUp = availabilityFollowUps > 0;
     const confidence = clamp(
-      0.5 + 0.1 * (entities.size - 3) + (hasAvailabilityFollowUp ? 0.15 : 0),
+      0.5 + 0.1 * (entitiesInspected - 3) + (hasAvailabilityFollowUp ? 0.15 : 0),
       0,
       0.95,
     );
@@ -88,7 +99,7 @@ export const multiEntityInspection: Detector = {
       entityType: "product",
       wastedCallsEstimate: wasted,
       evidence: {
-        entitiesInspected: entities.size,
+        entitiesInspected,
         callsSpent: productSteps.length,
         followedAvailabilityChecks: availabilityFollowUps,
       },
