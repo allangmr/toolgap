@@ -7,14 +7,14 @@ import { Badge } from "@/components/ui";
 function kindLabel(kind: string): string {
   if (kind === "native") return "WebMCP native";
   if (kind === "polyfill") return "WebMCP polyfill";
-  return "WebMCP unavailable";
+  return "WebMCP demo mode";
 }
 
 function kindTone(kind: string, hasErrors: boolean) {
   if (hasErrors) return "danger" as const;
   if (kind === "native") return "success" as const;
   if (kind === "polyfill") return "info" as const;
-  return "warning" as const;
+  return "neutral" as const;
 }
 
 export function WebmcpStatusBadge() {

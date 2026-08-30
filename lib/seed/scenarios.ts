@@ -1,4 +1,9 @@
-import { publishedRepo, sessionRepo, settingsRepo } from "@/lib/db/repositories";
+import {
+  clearTelemetryData,
+  publishedRepo,
+  sessionRepo,
+  settingsRepo,
+} from "@/lib/db/repositories";
 import { ensureCatalogSeeded } from "@/lib/store-domain/services";
 import { nowMs } from "@/lib/shared";
 import type { PublishedCapability } from "@/lib/shared/types";
@@ -170,6 +175,9 @@ export async function seedAllScenarios(options?: {
   capabilityId?: string;
 }): Promise<{ sessions: number }> {
   await ensureSeedRuntime();
+  await telemetryRecorder.flush();
+  await clearTelemetryData();
+  resetSessionizer();
 
   for (let i = 0; i < 5; i++) {
     await seedScenarioComparisonDetour();

@@ -49,6 +49,14 @@ describe("seed → analysis → gap pipeline", () => {
     expect(buildRecommendation(filterGap!)).toBeNull();
   });
 
+  it("re-seeding replaces observed data instead of appending", async () => {
+    const first = await seedAllScenarios();
+    const second = await seedAllScenarios();
+    expect(second.sessions).toBe(first.sessions);
+    const sessions = await sessionRepo.all();
+    expect(sessions.length).toBe(first.sessions);
+  });
+
   it("builds recommendation and simulation from a gap", async () => {
     await seedAllScenarios();
     await runAnalysis();
