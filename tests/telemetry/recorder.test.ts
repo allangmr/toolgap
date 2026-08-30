@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resetDbForTests } from "@/lib/db/schema";
-import { settingsRepo, toolCallRepo } from "@/lib/db/repositories";
+import { toolCallRepo, settingsRepo } from "@/lib/db/repositories";
 import {
   requestPersistentStorage,
   telemetryRecorder,
@@ -61,5 +61,26 @@ describe("telemetry cap and persist", () => {
     await telemetryRecorder.flush();
     expect(await toolCallRepo.count()).toBe(1);
     vi.unstubAllGlobals();
+  });
+
+  it("notifies subscribers when a flush fails and recovers", async () => {
+    const listener = vi.fn();
+    const stop = telemetryRecorder.subscribe(listener);
+    const spy = vi
+      .spyOn(toolCallRepo, "bulkAdd")
+      .mockRejectedValueOnce(new Error("quota"))
+      .mockResolvedValueOnce(undefined);
+
+    telemetryRecorder.record(event("fail", 1));
+    await telemetryRecorder.flush();
+    expect(telemetryRecorder.isDegraded).toBe(true);
+    expect(listener).toHaveBeenCalledWith(true);
+
+    telemetryRecorder.record(event("ok2", 2));
+    await telemetryRecorder.flush();
+    expect(telemetryRecorder.isDegraded).toBe(false);
+    expect(listener).toHaveBeenCalledWith(false);
+    spy.mockRestore();
+    stop();
   });
 });
