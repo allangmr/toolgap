@@ -183,11 +183,14 @@ export async function seedAllScenarios(options?: {
 
   await seedScenarioDirectLookup();
   await seedScenarioDirectLookup();
-  await seedScenarioFailureLoop();
+  for (let i = 0; i < 3; i++) {
+    await seedScenarioFailureLoop();
+  }
   await seedScenarioEfficientCheckout();
   await seedScenarioEfficientCheckout();
-  await seedScenarioFilterIteration();
-  await seedScenarioFilterIteration();
+  for (let i = 0; i < 3; i++) {
+    await seedScenarioFilterIteration();
+  }
 
   if (options?.includePostPublish) {
     await seedPostPublishTraffic(options.capabilityId);

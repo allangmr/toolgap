@@ -22,7 +22,7 @@ import {
   Tabs,
 } from "@/components/ui";
 import { JourneySignature } from "@/components/dashboard/JourneySignature";
-import { buildRecommendation } from "@/lib/recommendations/builder";
+import { buildRecommendation, templateForGapType } from "@/lib/recommendations/builder";
 import { simulate } from "@/lib/recommendations/simulation";
 import { dismissGap, transitionGap } from "@/lib/gaps/engine";
 import {
@@ -177,6 +177,7 @@ export default function GapDetailClient({ id }: { id: string }) {
   }
 
   const dominantSignature = supportingJourneys[0]?.signature;
+  const canBuild = templateForGapType(gap.type) !== null;
 
   return (
     <div className="space-y-6">
@@ -200,7 +201,7 @@ export default function GapDetailClient({ id }: { id: string }) {
       </div>
 
       <div className="flex flex-wrap gap-2" role="group" aria-label="Gap actions">
-        {!recommendation ? (
+        {!recommendation && canBuild ? (
           <Button onClick={() => void onBuildRecommendation()} disabled={busy}>
             Build recommendation
           </Button>
@@ -232,6 +233,9 @@ export default function GapDetailClient({ id }: { id: string }) {
 
       <p className="text-sm text-muted" aria-live="polite">
         {message}
+        {!message && !recommendation && !canBuild
+          ? `No publishable template for ${gap.type} gaps. Dismiss if this is not actionable.`
+          : null}
       </p>
 
       <Tabs
@@ -301,7 +305,9 @@ export default function GapDetailClient({ id }: { id: string }) {
       <TabPanel id="recommendation" active={tab}>
         {!recommendation ? (
           <p className="text-sm text-muted">
-            No recommendation yet. Build one from the actions above.
+            {canBuild
+              ? "No recommendation yet. Build one from the actions above."
+              : `No publishable template for ${gap.type} gaps.`}
           </p>
         ) : (
           <Card as="section" className="space-y-4">
