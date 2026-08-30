@@ -43,6 +43,18 @@ describe("sessionizer restore", () => {
     expect(second.sequenceIndex).toBe(1);
   });
 
+  it("honors a settings timeout shorter than the default", async () => {
+    const settings = await settingsRepo.get();
+    await settingsRepo.put({ ...settings, inactivityTimeoutMs: 1_000 });
+    const first = await nextCallContext("store");
+    const session = await sessionRepo.get(first.sessionId);
+    session!.lastActivityAt -= 1_001;
+    await sessionRepo.upsert(session!);
+    clearMemoryForTests();
+    const second = await nextCallContext("store");
+    expect(second.sessionId).not.toBe(first.sessionId);
+  });
+
   it("falls back when the stored id is unknown", async () => {
     sessionStorage.setItem("toolgap_session_id", "missing-session");
     const ctx = await nextCallContext("store");
