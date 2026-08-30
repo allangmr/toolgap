@@ -103,6 +103,8 @@ export class ToolRegistry {
   private adapter: WebmcpAdapter = createNoopAdapter();
   private ready: Promise<void>;
   private registryErrors: string[] = [];
+  private abortByName = new Map<string, AbortController>();
+  private listeners = new Set<() => void>();
 
   constructor() {
     this.ready = this.init();
@@ -126,6 +128,22 @@ export class ToolRegistry {
 
   getErrors(): string[] {
     return [...this.registryErrors];
+  }
+
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  private notify(): void {
+    for (const listener of this.listeners) listener();
+  }
+
+  private recordError(message: string): void {
+    this.registryErrors.push(message);
+    this.notify();
   }
 
   listTools(): ToolgapToolDefinition[] {
@@ -153,21 +171,12 @@ export class ToolRegistry {
     const handlerRef = { current: definition.handler };
     const inputSchemaJson = safeJsonSchema(definition.inputSchema);
 
-    const execute = async (
-      params: Record<string, unknown>,
-    ): Promise<McpToolResult> => {
-      return this.invokeInternal(definition.name, params, { viaAdapter: true });
-    };
-
-    // Keep handlerRef in sync for invokeInternal
-    void handlerRef;
-
     const native: NativeToolDefinition = {
       name: definition.name,
       description: definition.description,
       inputSchema: inputSchemaJson,
       annotations: definition.readOnly ? { readOnlyHint: true } : undefined,
-      execute,
+      execute: async (params) => this.invokeInternal(definition.name, params),
     };
 
     this.tools.set(definition.name, {
@@ -176,15 +185,17 @@ export class ToolRegistry {
       native,
     });
 
-    // Re-bind execute to use current definition lookup
-    native.execute = async (params) =>
-      this.invokeInternal(definition.name, params, { viaAdapter: true });
+    native.execute = async (params) => this.invokeInternal(definition.name, params);
+
+    const abort = new AbortController();
+    this.abortByName.set(definition.name, abort);
 
     try {
-      this.adapter.register(native);
+      await this.adapter.register(native, { signal: abort.signal });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.registryErrors.push(`register ${definition.name}: ${message}`);
+      this.recordError(`register ${definition.name}: ${message}`);
+      this.abortByName.delete(definition.name);
       this.tools.delete(definition.name);
       throw error;
     }
@@ -192,11 +203,16 @@ export class ToolRegistry {
 
   unregisterTool(name: string): void {
     if (!this.tools.has(name)) return;
+    const abort = this.abortByName.get(name);
+    this.abortByName.delete(name);
+    if (abort && !abort.signal.aborted) {
+      abort.abort();
+    }
     try {
       this.adapter.unregister(name);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.registryErrors.push(`unregister ${name}: ${message}`);
+      this.recordError(`unregister ${name}: ${message}`);
     }
     this.tools.delete(name);
   }
@@ -207,13 +223,12 @@ export class ToolRegistry {
     params: Record<string, unknown> = {},
   ): Promise<McpToolResult> {
     await this.ready;
-    return this.invokeInternal(name, params, { viaAdapter: false });
+    return this.invokeInternal(name, params);
   }
 
   private async invokeInternal(
     name: string,
     params: Record<string, unknown>,
-    _opts: { viaAdapter: boolean },
   ): Promise<McpToolResult> {
     const registered = this.tools.get(name);
     if (!registered) {
@@ -328,6 +343,8 @@ export class ToolRegistry {
       this.unregisterTool(name);
     }
     this.registryErrors = [];
+    this.abortByName.clear();
+    this.listeners.clear();
   }
 }
 
