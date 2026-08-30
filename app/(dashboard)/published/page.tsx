@@ -1,0 +1,173 @@
+"use client";
+
+import { useState } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
+import {
+  journeyRepo,
+  metricRepo,
+  publishedRepo,
+  toolCallRepo,
+} from "@/lib/db/repositories";
+import { Button, Card, Dialog, StatusBadge } from "@/components/ui";
+import { deactivateCapability } from "@/lib/publishing/publish";
+import { computeBeforeAfter } from "@/lib/measurement/before-after";
+import { formatTimestamp, round } from "@/lib/shared";
+
+export default function PublishedPage() {
+  const capabilities = useLiveQuery(() => publishedRepo.all(), []) ?? [];
+  const journeys = useLiveQuery(() => journeyRepo.all(), []) ?? [];
+  const events = useLiveQuery(() => toolCallRepo.storeSurface(), []) ?? [];
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  async function onDeactivate(id: string) {
+    await deactivateCapability(id);
+    setConfirmId(null);
+    setMessage("Capability deactivated and unregistered.");
+  }
+
+  async function onMeasure(id: string) {
+    const cap = await publishedRepo.get(id);
+    if (!cap) return;
+    const snapshot = computeBeforeAfter({
+      capability: cap,
+      journeys,
+      events,
+      intent: "comparison",
+    });
+    await metricRepo.put(snapshot);
+    setMessage(
+      snapshot.sufficientData
+        ? "Before/after snapshot updated."
+        : "Snapshot saved — insufficient sample size for firm conclusions.",
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <header>
+        <h1 className="text-2xl font-semibold">Published Capabilities</h1>
+        <p className="text-sm text-muted">
+          Dynamically registered WebMCP tools from approved recommendations.
+        </p>
+      </header>
+
+      <p className="text-sm text-muted" aria-live="polite">
+        {message}
+      </p>
+
+      <div className="grid gap-3">
+        {capabilities.map((cap) => (
+          <PublishedCard
+            key={cap.id}
+            capId={cap.id}
+            onDeactivate={() => setConfirmId(cap.id)}
+            onMeasure={() => void onMeasure(cap.id)}
+          />
+        ))}
+        {capabilities.length === 0 ? (
+          <p className="text-sm text-muted">No published capabilities yet.</p>
+        ) : null}
+      </div>
+
+      <Dialog
+        open={confirmId != null}
+        title="Deactivate capability"
+        onClose={() => setConfirmId(null)}
+        actions={
+          <>
+            <Button variant="secondary" onClick={() => setConfirmId(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => confirmId && void onDeactivate(confirmId)}
+            >
+              Deactivate
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm">
+          This will unregister the dynamic WebMCP tool from the demo store and mark the
+          capability inactive. Telemetry already recorded keeps its version tags.
+        </p>
+      </Dialog>
+    </div>
+  );
+}
+
+function PublishedCard({
+  capId,
+  onDeactivate,
+  onMeasure,
+}: {
+  capId: string;
+  onDeactivate: () => void;
+  onMeasure: () => void;
+}) {
+  const cap = useLiveQuery(() => publishedRepo.get(capId), [capId]);
+  const snapshot = useLiveQuery(() => metricRepo.byCapability(capId), [capId]);
+
+  if (!cap) return null;
+
+  return (
+    <Card as="article">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="font-mono text-lg font-semibold">{cap.toolName}</h2>
+          <p className="text-sm text-muted">
+            {cap.templateType} · v{cap.version} · published{" "}
+            {formatTimestamp(cap.publishedAt)}
+          </p>
+        </div>
+        <StatusBadge status={cap.status} />
+      </div>
+      {cap.registrationError ? (
+        <p className="mt-2 text-sm text-danger">Registration error: {cap.registrationError}</p>
+      ) : null}
+
+      <div className="mt-4">
+        <h3 className="text-sm font-semibold">Before / after</h3>
+        {!snapshot ? (
+          <p className="mt-1 text-sm text-muted">
+            No snapshot yet. Measure after collecting post-publish sessions.
+          </p>
+        ) : !snapshot.sufficientData ? (
+          <p className="mt-1 text-sm text-muted">
+            Insufficient data (need ≥5 journeys before and after). Before n=
+            {snapshot.before.sampleSize}, after n={snapshot.after.sampleSize}.
+          </p>
+        ) : (
+          <div className="mt-2 grid gap-3 sm:grid-cols-2 text-sm">
+            <div className="rounded border border-border p-3">
+              <p className="text-xs text-muted">Before (measured)</p>
+              <p>avg calls {snapshot.before.avgCalls}</p>
+              <p>completion {round(snapshot.before.completionRate * 100, 1)}%</p>
+              <p>duration {snapshot.before.avgDurationMs}ms</p>
+              <p className="text-xs text-muted">n={snapshot.before.sampleSize}</p>
+            </div>
+            <div className="rounded border border-border p-3">
+              <p className="text-xs text-muted">After (measured)</p>
+              <p>avg calls {snapshot.after.avgCalls}</p>
+              <p>completion {round(snapshot.after.completionRate * 100, 1)}%</p>
+              <p>duration {snapshot.after.avgDurationMs}ms</p>
+              <p className="text-xs text-muted">n={snapshot.after.sampleSize}</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button variant="secondary" onClick={onMeasure}>
+          Compute before/after
+        </Button>
+        {cap.status === "active" ? (
+          <Button variant="ghost" onClick={onDeactivate}>
+            Deactivate…
+          </Button>
+        ) : null}
+      </div>
+    </Card>
+  );
+}
