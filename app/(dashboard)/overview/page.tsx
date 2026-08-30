@@ -62,7 +62,7 @@ export default function OverviewPage() {
       {isEmpty ? (
         <EmptyState
           title="No agent activity yet"
-          description="Load sample telemetry or open the demo store and drive WebMCP tools to start detecting capability gaps."
+          description="Load sample journeys through the live store tools, or open the demo store and drive WebMCP tools to start detecting capability gaps."
           actions={
             <>
               <Button onClick={() => void loadSeed()} disabled={seeding}>

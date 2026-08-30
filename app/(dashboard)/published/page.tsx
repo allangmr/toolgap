@@ -11,6 +11,8 @@ import {
 import { Button, Card, Dialog, StatusBadge } from "@/components/ui";
 import { deactivateCapability } from "@/lib/publishing/publish";
 import { computeBeforeAfter } from "@/lib/measurement/before-after";
+import { seedPostPublishTraffic } from "@/lib/seed/scenarios";
+import { useAnalysisStatus } from "@/components/providers/AnalysisStatusProvider";
 import { formatTimestamp, round } from "@/lib/shared";
 
 export default function PublishedPage() {
@@ -19,6 +21,8 @@ export default function PublishedPage() {
   const events = useLiveQuery(() => toolCallRepo.storeSurface(), []) ?? [];
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const analysis = useAnalysisStatus();
 
   async function onDeactivate(id: string) {
     await deactivateCapability(id);
@@ -55,6 +59,27 @@ export default function PublishedPage() {
       <p className="text-sm text-muted" aria-live="polite">
         {message}
       </p>
+
+      {capabilities.some((c) => c.status === "active") ? (
+        <Button
+          variant="secondary"
+          disabled={busy}
+          onClick={() => {
+            const active = capabilities.find((c) => c.status === "active");
+            if (!active) return;
+            setBusy(true);
+            void seedPostPublishTraffic(active.id)
+              .then(() => analysis.refresh())
+              .then(() => setMessage("Post-publish traffic loaded."))
+              .catch((e) =>
+                setMessage(e instanceof Error ? e.message : String(e)),
+              )
+              .finally(() => setBusy(false));
+          }}
+        >
+          Load post-publish traffic
+        </Button>
+      ) : null}
 
       <div className="grid gap-3">
         {capabilities.map((cap) => (

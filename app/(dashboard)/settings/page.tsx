@@ -4,11 +4,12 @@ import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   clearDerivedData,
+  publishedRepo,
   resetAllData,
   settingsRepo,
 } from "@/lib/db/repositories";
 import { rebuildDerivedData } from "@/lib/analysis/pipeline";
-import { seedAllScenarios } from "@/lib/seed/scenarios";
+import { seedAllScenarios, seedPostPublishTraffic } from "@/lib/seed/scenarios";
 import { Button, Card } from "@/components/ui";
 import { useAnalysisStatus } from "@/components/providers/AnalysisStatusProvider";
 import { driveSequence } from "@/lib/webmcp/driver";
@@ -18,6 +19,7 @@ import { getDb } from "@/lib/db/schema";
 
 export default function SettingsPage() {
   const settings = useLiveQuery(() => settingsRepo.get(), []);
+  const activeCaps = useLiveQuery(() => publishedRepo.active(), []) ?? [];
   const analysis = useAnalysisStatus();
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -49,7 +51,8 @@ export default function SettingsPage() {
       <Card as="section" className="space-y-3">
         <h2 className="font-semibold">Sample data</h2>
         <p className="text-sm text-muted">
-          Loads realistic agent journeys through the production telemetry model.
+          Drives sample journeys through the live store WebMCP tools so telemetry,
+          sessions, and analysis use the same path as a real agent.
         </p>
         <Button
           disabled={busy}
@@ -96,6 +99,18 @@ export default function SettingsPage() {
           }
         >
           Run live agent-driver comparison sequence
+        </Button>
+        <Button
+          variant="secondary"
+          disabled={busy || activeCaps.length === 0}
+          onClick={() =>
+            void run("Post-publish traffic loaded.", async () => {
+              await seedPostPublishTraffic(activeCaps[0]?.id);
+              await analysis.refresh();
+            })
+          }
+        >
+          Load post-publish traffic
         </Button>
       </Card>
 
