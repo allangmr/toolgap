@@ -74,7 +74,7 @@ Persistence is IndexedDB via Dexie (repository abstraction ready for a later ser
 
 ## Manual WebMCP checklist
 
-- [ ] Browser without WebMCP: status badge shows unavailable; dashboard usable; seed data works
+- [ ] Browser without WebMCP: status badge shows demo mode; dashboard usable; seed data works
 - [ ] Polyfill mode: tools register on `/store` load
 - [ ] Native mode: tools register via `navigator.modelContext`
 - [ ] Publish `compare_products` from a gap; reload `/store`; tool still registered
