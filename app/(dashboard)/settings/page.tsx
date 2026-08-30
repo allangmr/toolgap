@@ -158,7 +158,7 @@ export default function SettingsPage() {
               <span>{k}</span>
               <button
                 type="button"
-                className="text-muted hover:text-fg"
+                className="text-muted hover:text-foreground"
                 aria-label={`Remove ${k}`}
                 disabled={busy || !settings}
                 onClick={() => {

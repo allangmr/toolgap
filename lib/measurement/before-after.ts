@@ -33,9 +33,7 @@ export function computeBeforeAfter(args: {
   });
 
   const beforeJ = scoped.filter((j) => j.endedAt < publishedAt);
-  const afterJ = scoped.filter((j) => j.startedAt >= publishedAt);
 
-  // Also consider journeys that used the new tool as after
   const sessionsWithNewTool = new Set(
     args.events
       .filter(
@@ -45,11 +43,13 @@ export function computeBeforeAfter(args: {
       )
       .map((e) => e.sessionId),
   );
-  const afterWithTool = scoped.filter(
-    (j) => j.startedAt >= publishedAt || sessionsWithNewTool.has(j.sessionId),
+  const afterFromTool = args.journeys.filter((j) =>
+    sessionsWithNewTool.has(j.sessionId),
   );
-
-  const afterFinal = afterWithTool.length > 0 ? afterWithTool : afterJ;
+  const afterFinal =
+    afterFromTool.length > 0
+      ? afterFromTool
+      : scoped.filter((j) => j.startedAt >= publishedAt);
 
   const summarize = (list: Journey[]) => ({
     avgCalls: round(mean(list.map((j) => j.callCount)), 2),
