@@ -5,7 +5,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { journeyRepo, sessionRepo } from "@/lib/db/repositories";
-import { Pager, StatusBadge, Table, Td, Tr } from "@/components/ui";
+import { EmptyState, Pager, StatusBadge, Table, Td, Tr } from "@/components/ui";
 import { formatDuration, formatTimestamp, paginate, parsePage } from "@/lib/shared";
 
 export default function SessionsPageClient() {
@@ -73,6 +73,12 @@ export default function SessionsPageClient() {
         </label>
       </div>
 
+      {sessions.length === 0 ? (
+        <EmptyState
+          title="No agent sessions yet"
+          description="Sessions appear when agents call WebMCP tools. Load sample data from Overview, or open the demo store and run the live agent driver from Settings."
+        />
+      ) : (
       <div className="rounded-lg border border-border bg-surface">
         <Table
           caption="Agent sessions"
@@ -125,6 +131,7 @@ export default function SessionsPageClient() {
           })}
         </Table>
       </div>
+      )}
       <Pager
         page={windowed.page}
         totalPages={windowed.totalPages}

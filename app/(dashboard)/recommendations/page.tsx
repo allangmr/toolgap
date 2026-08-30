@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useLiveQuery } from "dexie-react-hooks";
 import { recommendationRepo } from "@/lib/db/repositories";
-import { Badge, StatusBadge, Table, Td, Tr } from "@/components/ui";
+import { Badge, EmptyState, StatusBadge, Table, Td, Tr } from "@/components/ui";
 import { formatTimestamp } from "@/lib/shared";
 
 export default function RecommendationsPage() {
@@ -16,6 +16,12 @@ export default function RecommendationsPage() {
         <p className="text-sm text-muted">Structured capability proposals derived from gaps.</p>
       </header>
 
+      {recommendations.length === 0 ? (
+        <EmptyState
+          title="No recommendations yet"
+          description="Open a capability gap with a publishable template and click Build recommendation."
+        />
+      ) : (
       <div className="rounded-lg border border-border bg-surface">
         <Table
           caption="Recommendations"
@@ -43,6 +49,7 @@ export default function RecommendationsPage() {
           ))}
         </Table>
       </div>
+      )}
     </div>
   );
 }

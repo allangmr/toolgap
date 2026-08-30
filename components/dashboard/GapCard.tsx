@@ -1,8 +1,10 @@
 import type { CapabilityGap } from "@/lib/shared/types";
-import { Card, StatusBadge } from "@/components/ui";
+import { templateForGapType } from "@/lib/recommendations/builder";
+import { Badge, Card, StatusBadge } from "@/components/ui";
 import { round } from "@/lib/shared";
 
 export function GapCard({ gap }: { gap: CapabilityGap }) {
+  const observational = templateForGapType(gap.type) === null;
   return (
     <Card as="article" className="transition-colors hover:border-accent/40">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -13,6 +15,7 @@ export function GapCard({ gap }: { gap: CapabilityGap }) {
           </p>
         </div>
         <div className="flex gap-2">
+          {observational ? <Badge tone="neutral">Observational</Badge> : null}
           <StatusBadge status={gap.severity} />
           <StatusBadge status={gap.status} />
         </div>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { gapRepo } from "@/lib/db/repositories";
+import { templateForGapType } from "@/lib/recommendations/builder";
 import { GapCard } from "@/components/dashboard/GapCard";
 import { EmptyState } from "@/components/ui";
 
@@ -22,7 +23,13 @@ export default function GapsPageClient() {
     })
     .sort((a, b) => {
       const sev = { high: 3, medium: 2, low: 1 };
-      return sev[b.severity] - sev[a.severity] || b.confidence - a.confidence;
+      const actionable = (type: (typeof a)["type"]) =>
+        templateForGapType(type) === null ? 0 : 1;
+      return (
+        actionable(b.type) - actionable(a.type) ||
+        sev[b.severity] - sev[a.severity] ||
+        b.confidence - a.confidence
+      );
     });
 
   return (
