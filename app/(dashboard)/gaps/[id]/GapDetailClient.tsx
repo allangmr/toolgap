@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -32,12 +32,7 @@ import {
 import { formatTimestamp, round } from "@/lib/shared";
 import { useAnalysisStatus } from "@/components/providers/AnalysisStatusProvider";
 
-export default function GapDetailClient({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
+export default function GapDetailClient({ id }: { id: string }) {
   const gap = useLiveQuery(() => gapRepo.get(id), [id]);
   const recommendation = useLiveQuery(
     async () => (gap?.recommendationId ? recommendationRepo.get(gap.recommendationId) : recommendationRepo.byGap(id)),

@@ -11,7 +11,7 @@ export default function GapDetailPage({
   const resolved = use(params);
   return (
     <Suspense fallback={<p className="text-muted">Loading gap…</p>}>
-      <GapDetailClient params={Promise.resolve(resolved)} />
+      <GapDetailClient id={resolved.id} />
     </Suspense>
   );
 }
