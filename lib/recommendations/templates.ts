@@ -62,7 +62,6 @@ export const compareTemplate: CapabilityTemplate<CompareConfig> = {
     },
   }),
   createHandler: (config, services) => {
-    const allowed = new Set(config.fields);
     return async (params) => {
       const productIds = params.productIds as string[];
       if (productIds.length > config.maxBatchSize) {
@@ -71,8 +70,10 @@ export const compareTemplate: CapabilityTemplate<CompareConfig> = {
           { category: "validation" as const },
         );
       }
-      const requested = (params.fields as string[] | undefined) ?? config.fields;
-      const fields = requested.filter((f) => allowed.has(f));
+      const fields = effectiveFields(
+        config.fields,
+        params.fields as string[] | undefined,
+      );
       return services.compareProducts(productIds, fields);
     };
   },
@@ -166,9 +167,10 @@ export const bulkReadTemplate: CapabilityTemplate<BulkReadConfig> = {
   createHandler: (config, services) => async (params) => {
     const productIds = params.productIds as string[];
     const products = await services.getProducts(productIds);
+    const fields = effectiveFields(config.fields);
     return products.map((p) => {
       const row: Record<string, unknown> = {};
-      for (const field of config.fields) {
+      for (const field of fields) {
         if (field.startsWith("specs.")) {
           row[field] = p.specs[field.slice(6)] ?? null;
         } else {
@@ -193,6 +195,17 @@ export const templates = {
 
 export function getTemplate(type: TemplateType) {
   return templates[type];
+}
+
+export function effectiveFields(
+  configured: string[],
+  requested?: string[],
+): string[] {
+  const whitelist = new Set<string>(PRODUCT_FIELD_WHITELIST);
+  const allowed = configured.filter((f) => whitelist.has(f));
+  const allowedSet = new Set(allowed);
+  const source = requested && requested.length > 0 ? requested : allowed;
+  return source.filter((f) => allowedSet.has(f));
 }
 
 export function defaultCompareFields(): string[] {

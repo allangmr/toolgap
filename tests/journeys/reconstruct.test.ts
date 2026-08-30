@@ -53,6 +53,7 @@ describe("journey reconstruction", () => {
     expect(journey!.signature).toBe("search_products>get_product×3");
     expect(journey!.callCount).toBe(4);
     expect(journey!.inferredIntent).toBe("comparison");
+    expect(journey!.steps[1]!.paramsKeys).toEqual(["productId"]);
   });
 
   it("handles malformed/out-of-order sequence indexes", () => {

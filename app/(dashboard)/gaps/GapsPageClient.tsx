@@ -35,7 +35,7 @@ export default function GapsPageClient() {
       </header>
 
       <div className="flex gap-2 text-sm">
-        {["open", "detected", "published", "dismissed", "all"].map((s) => (
+        {["open", "detected", "published", "resolved", "dismissed", "all"].map((s) => (
           <button
             key={s}
             type="button"

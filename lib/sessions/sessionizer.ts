@@ -37,6 +37,31 @@ function writeStoredSessionId(id: string | null): void {
   else sessionStorage.removeItem(SESSION_KEY);
 }
 
+async function restoreFromStorage(
+  surface: Surface,
+  now: number,
+  timeoutMs: number,
+): Promise<void> {
+  const storedId = readStoredSessionId();
+  if (!storedId) return;
+  const session = await sessionRepo.get(storedId);
+  if (
+    !session ||
+    session.status !== "active" ||
+    session.surface !== surface ||
+    now - session.lastActivityAt > timeoutMs
+  ) {
+    writeStoredSessionId(null);
+    return;
+  }
+  memoryState = {
+    sessionId: session.id,
+    sequenceIndex: session.callCount,
+    lastActivityAt: session.lastActivityAt,
+    surface: session.surface,
+  };
+}
+
 export async function nextCallContext(surface: Surface): Promise<{
   sessionId: string;
   sequenceIndex: number;
@@ -44,6 +69,10 @@ export async function nextCallContext(surface: Surface): Promise<{
   const settings = await settingsRepo.get();
   const now = nowMs();
   const tabId = getTabId();
+
+  if (!memoryState) {
+    await restoreFromStorage(surface, now, settings.inactivityTimeoutMs);
+  }
 
   const expired =
     !memoryState ||
@@ -102,6 +131,11 @@ export function setSessionizerStateForTests(state: SessionState | null): void {
   memoryState = state;
   if (state) writeStoredSessionId(state.sessionId);
   else writeStoredSessionId(null);
+}
+
+/** Simulate a tab reload: drop in-memory state, keep sessionStorage. */
+export function clearMemoryForTests(): void {
+  memoryState = null;
 }
 
 export async function finalizeExpiredSessions(

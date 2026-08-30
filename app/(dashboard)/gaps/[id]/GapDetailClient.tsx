@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -32,12 +32,7 @@ import {
 import { formatTimestamp, round } from "@/lib/shared";
 import { useAnalysisStatus } from "@/components/providers/AnalysisStatusProvider";
 
-export default function GapDetailClient({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
+export default function GapDetailClient({ id }: { id: string }) {
   const gap = useLiveQuery(() => gapRepo.get(id), [id]);
   const recommendation = useLiveQuery(
     async () => (gap?.recommendationId ? recommendationRepo.get(gap.recommendationId) : recommendationRepo.byGap(id)),
@@ -196,6 +191,12 @@ export default function GapDetailClient({
           <Badge tone="info">inferred: {gap.detectedIntent}</Badge>
           <Badge tone="neutral">confidence {round(gap.confidence, 2)}</Badge>
         </div>
+        {gap.status === "resolved" && gap.resolvedByCapabilityId ? (
+          <p className="mt-2 text-sm text-muted">
+            Resolved by publishing capability {gap.resolvedByCapabilityId.slice(0, 8)}
+            {gap.resolvedAt ? ` at ${formatTimestamp(gap.resolvedAt)}` : ""}.
+          </p>
+        ) : null}
       </div>
 
       <div className="flex flex-wrap gap-2" role="group" aria-label="Gap actions">
@@ -220,7 +221,9 @@ export default function GapDetailClient({
             Publish…
           </Button>
         ) : null}
-        {gap.status !== "dismissed" && gap.status !== "published" ? (
+        {gap.status !== "dismissed" &&
+        gap.status !== "published" &&
+        gap.status !== "resolved" ? (
           <Button variant="ghost" onClick={() => setDismissOpen(true)} disabled={busy}>
             Dismiss…
           </Button>

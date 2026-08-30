@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { ensureDefaults } from "@/lib/db/repositories";
+import { requestPersistentStorage } from "@/lib/telemetry/recorder";
 
 /**
  * Ensures IndexedDB defaults exist outside liveQuery read contexts.
@@ -14,6 +15,7 @@ export function DbBootstrap({ children }: { children: ReactNode }) {
     void (async () => {
       try {
         await ensureDefaults();
+        await requestPersistentStorage();
       } finally {
         if (!cancelled) setReady(true);
       }

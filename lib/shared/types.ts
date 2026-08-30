@@ -83,6 +83,7 @@ export interface ToolCallEvent {
   durationMs: number;
   page: string;
   entityIds?: string[];
+  inputKeys?: string[];
 }
 
 export interface AgentSession {
@@ -104,6 +105,7 @@ export interface JourneyStep {
   durationMs: number;
   repeatIndex: number;
   paramsHash: string;
+  paramsKeys?: string[];
   sequenceIndex: number;
   errorCategory?: ErrorCategory;
 }
@@ -179,6 +181,8 @@ export interface CapabilityGap {
   statusHistory: StatusHistoryEntry[];
   dismissalReason?: string;
   dismissedUntil?: number;
+  resolvedAt?: number;
+  resolvedByCapabilityId?: string;
 }
 
 export interface EstimatedBenefit {

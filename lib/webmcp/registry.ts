@@ -8,7 +8,8 @@ import type {
   ToolOrigin,
 } from "@/lib/shared/types";
 import { nextCallContext } from "@/lib/sessions/sessionizer";
-import { redactValue, safeJsonSchema, truncateError } from "@/lib/telemetry/redaction";
+import { paramKeyPaths, redactValue, safeJsonSchema, truncateError } from "@/lib/telemetry/redaction";
+import { settingsRepo } from "@/lib/db/repositories";
 import { telemetryRecorder } from "@/lib/telemetry/recorder";
 import { createNoopAdapter, resolveAdapter } from "./adapter";
 import type {
@@ -285,6 +286,11 @@ export class ToolRegistry {
       args.def.entityExtractor?.(args.params, args.result) ??
       extractDefaultEntityIds(args.params, args.result);
 
+    const settings = await settingsRepo.get();
+    const extraKeys = [
+      ...(args.def.redactKeys ?? []),
+      ...settings.redactionKeys,
+    ];
     const event: ToolCallEvent = {
       id: createId(),
       sessionId,
@@ -295,7 +301,8 @@ export class ToolRegistry {
       origin: args.def.origin,
       surface: args.def.surface,
       capabilityId: args.def.capabilityId,
-      input: redactValue(args.params, args.def.redactKeys),
+      input: redactValue(args.params, extraKeys),
+      inputKeys: paramKeyPaths(args.params),
       resultMeta: buildResultMeta(args.success, args.result, entityIds),
       success: args.success,
       errorCategory: args.errorCategory,

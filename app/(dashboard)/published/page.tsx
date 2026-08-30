@@ -3,22 +3,24 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
-  journeyRepo,
   metricRepo,
   publishedRepo,
+  journeyRepo,
   toolCallRepo,
 } from "@/lib/db/repositories";
 import { Button, Card, Dialog, StatusBadge } from "@/components/ui";
 import { deactivateCapability } from "@/lib/publishing/publish";
 import { computeBeforeAfter } from "@/lib/measurement/before-after";
+import { seedPostPublishTraffic } from "@/lib/seed/scenarios";
+import { useAnalysisStatus } from "@/components/providers/AnalysisStatusProvider";
 import { formatTimestamp, round } from "@/lib/shared";
 
 export default function PublishedPage() {
   const capabilities = useLiveQuery(() => publishedRepo.all(), []) ?? [];
-  const journeys = useLiveQuery(() => journeyRepo.all(), []) ?? [];
-  const events = useLiveQuery(() => toolCallRepo.storeSurface(), []) ?? [];
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const analysis = useAnalysisStatus();
 
   async function onDeactivate(id: string) {
     await deactivateCapability(id);
@@ -29,10 +31,14 @@ export default function PublishedPage() {
   async function onMeasure(id: string) {
     const cap = await publishedRepo.get(id);
     if (!cap) return;
+    const [allJourneys, allEvents] = await Promise.all([
+      journeyRepo.all(),
+      toolCallRepo.storeSurface(),
+    ]);
     const snapshot = computeBeforeAfter({
       capability: cap,
-      journeys,
-      events,
+      journeys: allJourneys,
+      events: allEvents,
       intent: "comparison",
     });
     await metricRepo.put(snapshot);
@@ -55,6 +61,27 @@ export default function PublishedPage() {
       <p className="text-sm text-muted" aria-live="polite">
         {message}
       </p>
+
+      {capabilities.some((c) => c.status === "active") ? (
+        <Button
+          variant="secondary"
+          disabled={busy}
+          onClick={() => {
+            const active = capabilities.find((c) => c.status === "active");
+            if (!active) return;
+            setBusy(true);
+            void seedPostPublishTraffic(active.id)
+              .then(() => analysis.refresh())
+              .then(() => setMessage("Post-publish traffic loaded."))
+              .catch((e) =>
+                setMessage(e instanceof Error ? e.message : String(e)),
+              )
+              .finally(() => setBusy(false));
+          }}
+        >
+          Load post-publish traffic
+        </Button>
+      ) : null}
 
       <div className="grid gap-3">
         {capabilities.map((cap) => (

@@ -86,6 +86,16 @@ export const toolCallRepo = {
   async storeSurface(): Promise<ToolCallEvent[]> {
     return getDb().toolCalls.where("surface").equals("store").toArray();
   },
+  async pruneOldest(count: number): Promise<number> {
+    if (count <= 0) return 0;
+    const keys = await getDb()
+      .toolCalls.orderBy("timestamp")
+      .limit(count)
+      .primaryKeys();
+    if (keys.length === 0) return 0;
+    await getDb().toolCalls.bulkDelete(keys);
+    return keys.length;
+  },
 };
 
 export const sessionRepo = {
@@ -230,11 +240,11 @@ export const metricRepo = {
     await getDb().metricSnapshots.put(snapshot);
   },
   async byCapability(capabilityId: string): Promise<MetricSnapshot | undefined> {
-    return getDb()
+    const rows = await getDb()
       .metricSnapshots.where("capabilityId")
       .equals(capabilityId)
-      .reverse()
-      .first();
+      .toArray();
+    return rows.sort((a, b) => b.computedAt - a.computedAt)[0];
   },
   async clear(): Promise<void> {
     await getDb().metricSnapshots.clear();

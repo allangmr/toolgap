@@ -1,5 +1,5 @@
 import { createId } from "@/lib/shared";
-import { hashParams } from "@/lib/telemetry/redaction";
+import { hashParams, paramKeyPaths } from "@/lib/telemetry/redaction";
 import type {
   InferredIntent,
   Journey,
@@ -28,6 +28,7 @@ export function buildJourneyFromEvents(
       durationMs: event.durationMs,
       repeatIndex: run,
       paramsHash: hashParams(event.input),
+      paramsKeys: event.inputKeys ?? paramKeyPaths(event.input),
       sequenceIndex: event.sequenceIndex,
       errorCategory: event.errorCategory,
     });
