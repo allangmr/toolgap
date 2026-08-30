@@ -15,6 +15,14 @@ describe("redaction", () => {
     expect((result.nested as Record<string, unknown>).ok).toBe(true);
   });
 
+  it("applies extra redaction keys on top of the defaults", () => {
+    const result = redactValue({ nickname: "Ada", productId: "hp-01" }, [
+      "nickname",
+    ]);
+    expect(result.nickname).toBe("[redacted]");
+    expect(result.productId).toBe("hp-01");
+  });
+
   it("extracts sorted parameter key paths without values", () => {
     expect(
       paramKeyPaths({

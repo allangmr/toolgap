@@ -23,6 +23,7 @@ export default function SettingsPage() {
   const analysis = useAnalysisStatus();
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [newRedactionKey, setNewRedactionKey] = useState("");
 
   async function run(label: string, fn: () => Promise<void>) {
     setBusy(true);
@@ -147,14 +148,56 @@ export default function SettingsPage() {
 
       <Card as="section" className="space-y-3">
         <h2 className="font-semibold">Redaction</h2>
-        <p className="text-sm text-muted">Keys redacted from persisted tool inputs:</p>
+        <p className="text-sm text-muted">
+          Keys redacted from persisted tool inputs. Tool-specific keys still apply
+          on top of this list.
+        </p>
         <ul className="flex flex-wrap gap-2 text-xs">
           {(settings?.redactionKeys ?? []).map((k) => (
-            <li key={k} className="rounded bg-surface-muted px-2 py-1">
-              {k}
+            <li key={k} className="flex items-center gap-1 rounded bg-surface-muted px-2 py-1">
+              <span>{k}</span>
+              <button
+                type="button"
+                className="text-muted hover:text-fg"
+                aria-label={`Remove ${k}`}
+                disabled={busy || !settings}
+                onClick={() => {
+                  if (!settings) return;
+                  void settingsRepo.put({
+                    ...settings,
+                    redactionKeys: settings.redactionKeys.filter((key) => key !== k),
+                  });
+                }}
+              >
+                ×
+              </button>
             </li>
           ))}
         </ul>
+        <form
+          className="flex flex-wrap gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const key = newRedactionKey.trim();
+            if (!settings || !key || settings.redactionKeys.includes(key)) return;
+            void settingsRepo.put({
+              ...settings,
+              redactionKeys: [...settings.redactionKeys, key],
+            });
+            setNewRedactionKey("");
+          }}
+        >
+          <input
+            className="rounded border border-border bg-transparent px-2 py-1 text-sm"
+            value={newRedactionKey}
+            onChange={(e) => setNewRedactionKey(e.target.value)}
+            placeholder="Add key"
+            aria-label="New redaction key"
+          />
+          <Button type="submit" variant="secondary" disabled={busy || !newRedactionKey.trim()}>
+            Add key
+          </Button>
+        </form>
       </Card>
 
       <Card as="section" className="space-y-3">
