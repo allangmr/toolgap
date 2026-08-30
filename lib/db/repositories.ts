@@ -329,8 +329,8 @@ export const orderRepo = {
 
 export const settingsRepo = {
   async get(): Promise<AppSettings> {
-    await ensureDefaults();
-    return (await getDb().settings.get("settings")) ?? DEFAULT_SETTINGS;
+    const existing = await getDb().settings.get("settings");
+    return existing ?? DEFAULT_SETTINGS;
   },
   async put(settings: AppSettings): Promise<void> {
     await getDb().settings.put(settings);
@@ -339,8 +339,8 @@ export const settingsRepo = {
 
 export const metaRepo = {
   async get(): Promise<SchemaMeta> {
-    await ensureDefaults();
-    return (await getDb().schemaMeta.get("meta")) ?? DEFAULT_META;
+    const existing = await getDb().schemaMeta.get("meta");
+    return existing ?? DEFAULT_META;
   },
   async put(meta: SchemaMeta): Promise<void> {
     await getDb().schemaMeta.put(meta);

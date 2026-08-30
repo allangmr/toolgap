@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { WebmcpStatusProvider } from "@/components/providers/WebmcpStatusProvider";
+import { DbBootstrap } from "@/components/providers/DbBootstrap";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,7 +33,9 @@ export default function RootLayout({
         <a href="#main" className="skip-link">
           Skip to main content
         </a>
-        <WebmcpStatusProvider>{children}</WebmcpStatusProvider>
+        <WebmcpStatusProvider>
+          <DbBootstrap>{children}</DbBootstrap>
+        </WebmcpStatusProvider>
       </body>
     </html>
   );
