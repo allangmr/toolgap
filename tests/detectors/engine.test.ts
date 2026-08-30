@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  excessiveCalls,
   failureLoop,
   missingAggregation,
   multiEntityInspection,
@@ -71,6 +72,19 @@ describe("detectors", () => {
     expect(multiEntityInspection.analyze(j, { journeys: [j] })).toBeNull();
   });
 
+  it("abstains MULTI_ENTITY_INSPECTION on interleaved search-get (filter iteration)", () => {
+    const j = journey([
+      step("search_products", { paramsHash: "q1" }),
+      step("get_product", { entityIds: ["a"] }),
+      step("search_products", { paramsHash: "q2" }),
+      step("get_product", { entityIds: ["b"] }),
+      step("search_products", { paramsHash: "q3" }),
+      step("get_product", { entityIds: ["c"] }),
+    ]);
+    expect(multiEntityInspection.analyze(j, { journeys: [j] })).toBeNull();
+    expect(repeatedSequence.analyze(j, { journeys: [j] })).not.toBeNull();
+  });
+
   it("detects FAILURE_LOOP", () => {
     const j = journey([
       step("get_product", {
@@ -92,6 +106,35 @@ describe("detectors", () => {
     const signal = failureLoop.analyze(j, { journeys: [j] });
     expect(signal?.severity).toBe("high");
     expect(signal?.evidence.attempts).toBe(3);
+  });
+
+  it("detects EXCESSIVE_CALLS against a comparable corpus", () => {
+    const corpus = Array.from({ length: 10 }, (_, i) =>
+      journey([step("search_products")], {
+        id: `c${i}`,
+        sessionId: `sc${i}`,
+        callCount: 4,
+        outcome: "completed",
+        inferredIntent: "comparison",
+      }),
+    );
+    const heavy = journey([step("search_products"), step("get_product")], {
+      id: "heavy",
+      sessionId: "sh",
+      callCount: 20,
+      inferredIntent: "comparison",
+    });
+    const signal = excessiveCalls.analyze(heavy, { journeys: [...corpus, heavy] });
+    expect(signal?.type).toBe("EXCESSIVE_CALLS");
+    expect(signal?.evidence.calls).toBe(20);
+  });
+
+  it("abstains EXCESSIVE_CALLS without enough comparable journeys", () => {
+    const heavy = journey([step("search_products")], {
+      callCount: 20,
+      inferredIntent: "comparison",
+    });
+    expect(excessiveCalls.analyze(heavy, { journeys: [heavy] })).toBeNull();
   });
 
   it("detects MISSING_AGGREGATION for availability", () => {
