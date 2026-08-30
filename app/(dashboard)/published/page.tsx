@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
-  journeyRepo,
   metricRepo,
   publishedRepo,
+  journeyRepo,
   toolCallRepo,
 } from "@/lib/db/repositories";
 import { Button, Card, Dialog, StatusBadge } from "@/components/ui";
@@ -17,8 +17,6 @@ import { formatTimestamp, round } from "@/lib/shared";
 
 export default function PublishedPage() {
   const capabilities = useLiveQuery(() => publishedRepo.all(), []) ?? [];
-  const journeys = useLiveQuery(() => journeyRepo.all(), []) ?? [];
-  const events = useLiveQuery(() => toolCallRepo.storeSurface(), []) ?? [];
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -33,10 +31,14 @@ export default function PublishedPage() {
   async function onMeasure(id: string) {
     const cap = await publishedRepo.get(id);
     if (!cap) return;
+    const [allJourneys, allEvents] = await Promise.all([
+      journeyRepo.all(),
+      toolCallRepo.storeSurface(),
+    ]);
     const snapshot = computeBeforeAfter({
       capability: cap,
-      journeys,
-      events,
+      journeys: allJourneys,
+      events: allEvents,
       intent: "comparison",
     });
     await metricRepo.put(snapshot);
