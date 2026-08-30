@@ -208,10 +208,10 @@ export const failureLoop: Detector = {
   },
 };
 
-function jaccard(a: string, b: string): number {
-  if (a === b) return 1;
-  const as = new Set(a.split("|"));
-  const bs = new Set(b.split("|"));
+function jaccardKeys(a: string[] | undefined, b: string[] | undefined): number {
+  const as = new Set(a ?? []);
+  const bs = new Set(b ?? []);
+  if (as.size === 0 && bs.size === 0) return 0;
   let inter = 0;
   for (const x of as) if (bs.has(x)) inter += 1;
   const union = as.size + bs.size - inter;
@@ -222,21 +222,26 @@ export const parameterIteration: Detector = {
   type: "PARAMETER_ITERATION",
   analyze(journey, ctx) {
     const config = ctx.config ?? detectorConfig;
-    const byTool = new Map<string, string[]>();
+    const byTool = new Map<string, typeof journey.steps>();
     for (const step of journey.steps) {
       const list = byTool.get(step.toolName) ?? [];
-      list.push(step.paramsHash);
+      list.push(step);
       byTool.set(step.toolName, list);
     }
 
-    for (const [toolName, hashes] of byTool) {
-      if (hashes.length < config.parameterIterationMin) continue;
-      const unique = new Set(hashes);
+    for (const [toolName, steps] of byTool) {
+      const usable = steps.filter(
+        (s) => (s.paramsKeys?.length ?? 0) > 0,
+      );
+      if (usable.length < config.parameterIterationMin) continue;
+      const unique = new Set(usable.map((s) => s.paramsHash));
       if (unique.size < 2) continue;
       let similarPairs = 0;
-      for (let i = 0; i < hashes.length - 1; i++) {
-        const sim = jaccard(hashes[i]!, hashes[i + 1]!);
-        if (sim >= config.parameterSimilarityMin && hashes[i] !== hashes[i + 1]) {
+      for (let i = 0; i < usable.length - 1; i++) {
+        const a = usable[i]!;
+        const b = usable[i + 1]!;
+        if (a.paramsHash === b.paramsHash) continue;
+        if (jaccardKeys(a.paramsKeys, b.paramsKeys) >= config.parameterSimilarityMin) {
           similarPairs += 1;
         }
       }
@@ -244,15 +249,15 @@ export const parameterIteration: Detector = {
       return signal({
         type: "PARAMETER_ITERATION",
         confidence: clamp(0.55 + 0.08 * similarPairs, 0, 0.9),
-        severity: severityFromWasted(hashes.length - 1),
+        severity: severityFromWasted(usable.length - 1),
         journeyId: journey.id,
         sessionId: journey.sessionId,
         involvedTools: [toolName],
         entityType: toolName.includes("product") ? "product" : undefined,
-        wastedCallsEstimate: hashes.length - 1,
+        wastedCallsEstimate: usable.length - 1,
         evidence: {
           toolName,
-          iterations: hashes.length,
+          iterations: usable.length,
           similarity: config.parameterSimilarityMin,
           changedKeys: unique.size,
         },

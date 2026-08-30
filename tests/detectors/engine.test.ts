@@ -7,6 +7,7 @@ import {
   repeatedSequence,
   runDetectors,
 } from "@/lib/detectors/engine";
+import { hashParams, paramKeyPaths } from "@/lib/telemetry/redaction";
 import type { Journey, JourneyStep } from "@/lib/shared/types";
 
 function step(
@@ -20,6 +21,7 @@ function step(
     durationMs: 40,
     repeatIndex: 1,
     paramsHash: opts.paramsHash ?? "h",
+    paramsKeys: opts.paramsKeys,
     sequenceIndex: opts.sequenceIndex ?? 1,
     errorCategory: opts.errorCategory,
   };
@@ -115,13 +117,36 @@ describe("detectors", () => {
     expect(repeatedSequence.analyze(j, { journeys: [j] })).not.toBeNull();
   });
 
-  it("detects PARAMETER_ITERATION", () => {
-    const j = journey([
-      step("search_products", { paramsHash: "category|laptops|maxPrice|2000" }),
-      step("search_products", { paramsHash: "category|laptops|maxPrice|1500" }),
-      step("search_products", { paramsHash: "category|laptops|maxPrice|1000" }),
-    ]);
+  it("detects PARAMETER_ITERATION from production-shaped hashes and keys", () => {
+    const inputs = [
+      { category: "laptops", maxPrice: 2000 },
+      { category: "laptops", maxPrice: 1500 },
+      { category: "laptops", maxPrice: 1000 },
+    ];
+    const j = journey(
+      inputs.map((input) =>
+        step("search_products", {
+          paramsHash: hashParams(input),
+          paramsKeys: paramKeyPaths(input),
+        }),
+      ),
+    );
     expect(parameterIteration.analyze(j, { journeys: [j] })).not.toBeNull();
+  });
+
+  it("does not detect PARAMETER_ITERATION from opaque hashes without keys", () => {
+    const j = journey([
+      step("search_products", {
+        paramsHash: hashParams({ category: "laptops", maxPrice: 2000 }),
+      }),
+      step("search_products", {
+        paramsHash: hashParams({ category: "laptops", maxPrice: 1500 }),
+      }),
+      step("search_products", {
+        paramsHash: hashParams({ category: "laptops", maxPrice: 1000 }),
+      }),
+    ]);
+    expect(parameterIteration.analyze(j, { journeys: [j] })).toBeNull();
   });
 
   it("deduplicates detector outputs", () => {

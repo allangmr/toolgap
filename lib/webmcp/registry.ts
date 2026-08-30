@@ -8,7 +8,7 @@ import type {
   ToolOrigin,
 } from "@/lib/shared/types";
 import { nextCallContext } from "@/lib/sessions/sessionizer";
-import { redactValue, safeJsonSchema, truncateError } from "@/lib/telemetry/redaction";
+import { paramKeyPaths, redactValue, safeJsonSchema, truncateError } from "@/lib/telemetry/redaction";
 import { telemetryRecorder } from "@/lib/telemetry/recorder";
 import { createNoopAdapter, resolveAdapter } from "./adapter";
 import type {
@@ -296,6 +296,7 @@ export class ToolRegistry {
       surface: args.def.surface,
       capabilityId: args.def.capabilityId,
       input: redactValue(args.params, args.def.redactKeys),
+      inputKeys: paramKeyPaths(args.params),
       resultMeta: buildResultMeta(args.success, args.result, entityIds),
       success: args.success,
       errorCategory: args.errorCategory,

@@ -36,6 +36,24 @@ export function hashParams(input: Record<string, unknown>): string {
   return `h${Math.abs(hash)}`;
 }
 
+export function paramKeyPaths(
+  input: Record<string, unknown>,
+  prefix = "",
+): string[] {
+  const keys: string[] = [];
+  for (const [key, value] of Object.entries(input)) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      const nested = paramKeyPaths(value as Record<string, unknown>, path);
+      if (nested.length > 0) keys.push(...nested);
+      else keys.push(path);
+    } else {
+      keys.push(path);
+    }
+  }
+  return [...new Set(keys)].sort((a, b) => a.localeCompare(b));
+}
+
 function sortKeys(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(sortKeys);
   if (value && typeof value === "object") {
