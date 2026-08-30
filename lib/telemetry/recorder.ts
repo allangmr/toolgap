@@ -11,6 +11,7 @@ class TelemetryRecorder {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private degraded = false;
   private listenersAttached = false;
+  private listeners = new Set<(degraded: boolean) => void>();
 
   get isDegraded(): boolean {
     return this.degraded;
@@ -43,13 +44,26 @@ class TelemetryRecorder {
 
     try {
       await toolCallRepo.bulkAdd(batch);
-      this.degraded = false;
+      this.setDegraded(false);
       await this.enforceCap();
     } catch (error) {
       console.warn("[toolgap] telemetry flush failed", error);
-      this.degraded = true;
+      this.setDegraded(true);
       this.retryQueue = batch.slice(-RETRY_LIMIT);
     }
+  }
+
+  subscribe(listener: (degraded: boolean) => void): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  private setDegraded(next: boolean): void {
+    if (this.degraded === next) return;
+    this.degraded = next;
+    for (const listener of this.listeners) listener(this.degraded);
   }
 
   private async enforceCap(): Promise<void> {

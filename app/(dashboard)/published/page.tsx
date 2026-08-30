@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   metricRepo,
@@ -14,6 +14,7 @@ import { computeBeforeAfter } from "@/lib/measurement/before-after";
 import { seedPostPublishTraffic } from "@/lib/seed/scenarios";
 import { useAnalysisStatus } from "@/components/providers/AnalysisStatusProvider";
 import { formatTimestamp, round } from "@/lib/shared";
+import { getRegistry } from "@/lib/webmcp/registry";
 
 export default function PublishedPage() {
   const capabilities = useLiveQuery(() => publishedRepo.all(), []) ?? [];
@@ -124,6 +125,29 @@ export default function PublishedPage() {
   );
 }
 
+function useRegistryHas(toolName: string): boolean | null {
+  const [has, setHas] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const registry = getRegistry();
+    let cancelled = false;
+    const apply = () => {
+      if (!cancelled) setHas(registry.has(toolName));
+    };
+    const timer = window.setTimeout(() => {
+      void registry.whenReady().then(apply);
+    }, 0);
+    const stop = registry.subscribe(apply);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      stop();
+    };
+  }, [toolName]);
+
+  return has;
+}
+
 function PublishedCard({
   capId,
   onDeactivate,
@@ -135,6 +159,7 @@ function PublishedCard({
 }) {
   const cap = useLiveQuery(() => publishedRepo.get(capId), [capId]);
   const snapshot = useLiveQuery(() => metricRepo.byCapability(capId), [capId]);
+  const hasInTab = useRegistryHas(cap?.toolName ?? "");
 
   if (!cap) return null;
 
@@ -152,6 +177,14 @@ function PublishedCard({
       </div>
       {cap.registrationError ? (
         <p className="mt-2 text-sm text-danger">Registration error: {cap.registrationError}</p>
+      ) : cap.status === "active" ? (
+        <p className="mt-2 text-sm text-muted">
+          {hasInTab === null
+            ? "Checking live registration…"
+            : hasInTab
+              ? "Live in this tab"
+              : "Not registered in this tab"}
+        </p>
       ) : null}
 
       <div className="mt-4">

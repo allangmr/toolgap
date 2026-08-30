@@ -39,6 +39,14 @@ describe("seed → analysis → gap pipeline", () => {
     const compareGap = gaps.find((g) => g.type === "COMPARE");
     expect(compareGap).toBeDefined();
     expect(compareGap!.affectedSessions).toBeGreaterThanOrEqual(3);
+
+    const failureGap = gaps.find((g) => g.type === "FAILURE_LOOP");
+    expect(failureGap).toBeDefined();
+    expect(buildRecommendation(failureGap!)).toBeNull();
+
+    const filterGap = gaps.find((g) => g.type === "FILTER");
+    expect(filterGap).toBeDefined();
+    expect(buildRecommendation(filterGap!)).toBeNull();
   });
 
   it("builds recommendation and simulation from a gap", async () => {

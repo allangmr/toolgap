@@ -1,9 +1,19 @@
-import type { NativeToolDefinition, WebmcpAdapter } from "./types";
+import type {
+  AdapterRegisterOptions,
+  NativeToolDefinition,
+  WebmcpAdapter,
+} from "./types";
+
+type RegisterToolResult =
+  | void
+  | Promise<void | { unregister?: () => void }>
+  | { unregister?: () => void };
 
 type ModelContextLike = {
   registerTool: (
     def: NativeToolDefinition,
-  ) => void | Promise<void> | { unregister?: () => void };
+    options?: { signal?: AbortSignal },
+  ) => RegisterToolResult;
   unregisterTool?: (name: string) => void;
 };
 
@@ -17,15 +27,24 @@ function getModelContext(): ModelContextLike | null {
   return null;
 }
 
+function isThenable(value: unknown): value is Promise<unknown> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "then" in value &&
+    typeof (value as { then?: unknown }).then === "function"
+  );
+}
+
 export function createNoopAdapter(): WebmcpAdapter {
   return {
     kind: "noop",
     available: false,
-    register() {
-      /* no-op */
+    async register() {
+      return;
     },
     unregister() {
-      /* no-op */
+      return;
     },
   };
 }
@@ -35,30 +54,51 @@ export function createNativeAdapter(): WebmcpAdapter | null {
   if (!ctx) return null;
 
   const handles = new Map<string, { unregister?: () => void }>();
+  const controllers = new Map<string, AbortController>();
 
   return {
     kind: "native",
     available: true,
-    register(def: NativeToolDefinition) {
+    async register(def: NativeToolDefinition, options?: AdapterRegisterOptions) {
+      if (options?.signal?.aborted) {
+        throw new DOMException("Registration aborted", "AbortError");
+      }
+
+      const local = new AbortController();
+      const onAbort = () => {
+        local.abort();
+      };
+      options?.signal?.addEventListener("abort", onAbort, { once: true });
+      controllers.set(def.name, local);
+
       try {
-        const result = ctx.registerTool(def);
-        if (result && typeof result === "object" && "unregister" in result) {
-          handles.set(def.name, result);
-        } else if (result && typeof (result as Promise<unknown>).then === "function") {
-          void (result as Promise<unknown>).catch((error) => {
-            console.warn("[toolgap] registerTool failed", def.name, error);
-          });
+        const result = ctx.registerTool(def, { signal: local.signal });
+        const resolved = isThenable(result) ? await result : result;
+        if (
+          resolved &&
+          typeof resolved === "object" &&
+          "unregister" in resolved
+        ) {
+          handles.set(def.name, resolved);
         }
       } catch (error) {
+        controllers.delete(def.name);
+        options?.signal?.removeEventListener("abort", onAbort);
         console.warn("[toolgap] registerTool failed", def.name, error);
         throw error;
       }
     },
     unregister(name: string) {
+      const local = controllers.get(name);
+      controllers.delete(name);
+      if (local && !local.signal.aborted) {
+        local.abort();
+      }
+
       const handle = handles.get(name);
+      handles.delete(name);
       if (handle?.unregister) {
         handle.unregister();
-        handles.delete(name);
         return;
       }
       if (typeof ctx.unregisterTool === "function") {
