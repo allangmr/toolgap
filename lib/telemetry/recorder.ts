@@ -55,11 +55,9 @@ class TelemetryRecorder {
   private async enforceCap(): Promise<void> {
     const settings = await settingsRepo.get();
     const count = await toolCallRepo.count();
-    if (count <= settings.maxTelemetryEvents) return;
-    // Soft notice only — pruning oldest sessions is handled by settings actions for MVP.
-    console.info(
-      `[toolgap] telemetry count ${count} exceeds cap ${settings.maxTelemetryEvents}`,
-    );
+    const excess = count - settings.maxTelemetryEvents;
+    if (excess <= 0) return;
+    await toolCallRepo.pruneOldest(excess);
   }
 
   private ensureLifecycleListeners(): void {
@@ -76,3 +74,14 @@ class TelemetryRecorder {
 }
 
 export const telemetryRecorder = new TelemetryRecorder();
+
+export async function requestPersistentStorage(): Promise<boolean> {
+  if (typeof navigator === "undefined" || !navigator.storage?.persist) {
+    return false;
+  }
+  try {
+    return await navigator.storage.persist();
+  } catch {
+    return false;
+  }
+}

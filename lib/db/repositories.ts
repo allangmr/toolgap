@@ -86,6 +86,16 @@ export const toolCallRepo = {
   async storeSurface(): Promise<ToolCallEvent[]> {
     return getDb().toolCalls.where("surface").equals("store").toArray();
   },
+  async pruneOldest(count: number): Promise<number> {
+    if (count <= 0) return 0;
+    const keys = await getDb()
+      .toolCalls.orderBy("timestamp")
+      .limit(count)
+      .primaryKeys();
+    if (keys.length === 0) return 0;
+    await getDb().toolCalls.bulkDelete(keys);
+    return keys.length;
+  },
 };
 
 export const sessionRepo = {
