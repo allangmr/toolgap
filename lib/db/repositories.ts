@@ -240,11 +240,11 @@ export const metricRepo = {
     await getDb().metricSnapshots.put(snapshot);
   },
   async byCapability(capabilityId: string): Promise<MetricSnapshot | undefined> {
-    return getDb()
+    const rows = await getDb()
       .metricSnapshots.where("capabilityId")
       .equals(capabilityId)
-      .reverse()
-      .first();
+      .toArray();
+    return rows.sort((a, b) => b.computedAt - a.computedAt)[0];
   },
   async clear(): Promise<void> {
     await getDb().metricSnapshots.clear();

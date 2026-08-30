@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { computeBeforeAfter } from "@/lib/measurement/before-after";
+import { resetDbForTests } from "@/lib/db/schema";
+import { metricRepo } from "@/lib/db/repositories";
 import type { Journey, PublishedCapability, ToolCallEvent } from "@/lib/shared/types";
 
 function journey(
@@ -89,3 +91,45 @@ describe("before/after measurement", () => {
     expect(snapshot.sufficientData).toBe(true);
   });
 });
+
+describe("metricRepo.byCapability", () => {
+  it("returns the newest snapshot by computedAt", async () => {
+    const db = resetDbForTests();
+    await db.delete();
+    resetDbForTests();
+    const base = {
+      capabilityId: "cap1",
+      version: 1,
+      windowBefore: { from: 0, to: 1 },
+      windowAfter: { from: 1, to: 2 },
+      journeyScope: {},
+      before: {
+        avgCalls: 6,
+        completionRate: 0,
+        avgDurationMs: 10,
+        sampleSize: 12,
+        source: "measured" as const,
+      },
+      after: {
+        avgCalls: 3,
+        completionRate: 0,
+        avgDurationMs: 8,
+        sampleSize: 0,
+        source: "measured" as const,
+      },
+      sufficientData: false,
+    };
+    await metricRepo.put({ ...base, id: "old", computedAt: 1 });
+    await metricRepo.put({
+      ...base,
+      id: "new",
+      computedAt: 2,
+      after: { ...base.after, sampleSize: 6 },
+      sufficientData: true,
+    });
+    const latest = await metricRepo.byCapability("cap1");
+    expect(latest?.id).toBe("new");
+    expect(latest?.after.sampleSize).toBe(6);
+  });
+});
+
