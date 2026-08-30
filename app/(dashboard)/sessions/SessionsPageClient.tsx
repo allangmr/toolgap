@@ -5,8 +5,8 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { journeyRepo, sessionRepo } from "@/lib/db/repositories";
-import { StatusBadge, Table, Td, Tr } from "@/components/ui";
-import { formatDuration, formatTimestamp } from "@/lib/shared";
+import { Pager, StatusBadge, Table, Td, Tr } from "@/components/ui";
+import { formatDuration, formatTimestamp, paginate, parsePage } from "@/lib/shared";
 
 export default function SessionsPageClient() {
   const sessions = useLiveQuery(() => sessionRepo.all(), []) ?? [];
@@ -15,6 +15,7 @@ export default function SessionsPageClient() {
   const router = useRouter();
   const statusFilter = params.get("status") ?? "all";
   const surfaceFilter = params.get("surface") ?? "all";
+  const page = parsePage(params.get("page"));
 
   const journeyBySession = useMemo(() => {
     const map = new Map(journeys.map((j) => [j.sessionId, j]));
@@ -26,12 +27,15 @@ export default function SessionsPageClient() {
     if (surfaceFilter !== "all" && s.surface !== surfaceFilter) return false;
     return true;
   });
+  const windowed = paginate(filtered, page);
 
-  function setFilter(key: string, value: string) {
+  function setParam(key: string, value: string) {
     const next = new URLSearchParams(params.toString());
-    if (value === "all") next.delete(key);
+    if (value === "all" || value === "1") next.delete(key);
     else next.set(key, value);
-    router.push(`/sessions?${next.toString()}`);
+    if (key !== "page") next.delete("page");
+    const query = next.toString();
+    router.push(query ? `/sessions?${query}` : "/sessions");
   }
 
   return (
@@ -47,7 +51,7 @@ export default function SessionsPageClient() {
           <select
             className="rounded border border-border bg-surface px-2 py-1"
             value={statusFilter}
-            onChange={(e) => setFilter("status", e.target.value)}
+            onChange={(e) => setParam("status", e.target.value)}
           >
             <option value="all">All</option>
             <option value="active">Active</option>
@@ -60,7 +64,7 @@ export default function SessionsPageClient() {
           <select
             className="rounded border border-border bg-surface px-2 py-1"
             value={surfaceFilter}
-            onChange={(e) => setFilter("surface", e.target.value)}
+            onChange={(e) => setParam("surface", e.target.value)}
           >
             <option value="all">All</option>
             <option value="store">Store</option>
@@ -82,7 +86,7 @@ export default function SessionsPageClient() {
             "Friction",
           ]}
         >
-          {filtered.map((s) => {
+          {windowed.items.map((s) => {
             const journey = journeyBySession.get(s.id);
             const duration = (s.endedAt ?? s.lastActivityAt) - s.startedAt;
             return (
@@ -121,6 +125,13 @@ export default function SessionsPageClient() {
           })}
         </Table>
       </div>
+      <Pager
+        page={windowed.page}
+        totalPages={windowed.totalPages}
+        total={windowed.total}
+        noun="sessions"
+        onPage={(next) => setParam("page", String(next))}
+      />
     </div>
   );
 }

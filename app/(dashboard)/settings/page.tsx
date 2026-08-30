@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   clearDerivedData,
@@ -8,14 +8,20 @@ import {
   resetAllData,
   settingsRepo,
 } from "@/lib/db/repositories";
+import { exportDump, importDump } from "@/lib/db/dump";
 import { rebuildDerivedData } from "@/lib/analysis/pipeline";
 import { seedAllScenarios, seedPostPublishTraffic } from "@/lib/seed/scenarios";
-import { Button, Card } from "@/components/ui";
+import { Button, Card, Dialog } from "@/components/ui";
 import { useAnalysisStatus } from "@/components/providers/AnalysisStatusProvider";
 import { driveSequence } from "@/lib/webmcp/driver";
 import { SEED_PRODUCTS } from "@/lib/store-domain/catalog";
 import { resetSessionizer } from "@/lib/sessions/sessionizer";
-import { getDb } from "@/lib/db/schema";
+import {
+  TIMEOUT_SECONDS_MAX,
+  TIMEOUT_SECONDS_MIN,
+  timeoutMsToSeconds,
+  timeoutSecondsToMs,
+} from "@/lib/sessions/timeout";
 
 export default function SettingsPage() {
   const settings = useLiveQuery(() => settingsRepo.get(), []);
@@ -24,6 +30,21 @@ export default function SettingsPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [newRedactionKey, setNewRedactionKey] = useState("");
+  const [timeoutDraft, setTimeoutDraft] = useState<string | null>(null);
+  const [pendingDump, setPendingDump] = useState<unknown>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const timeoutSeconds =
+    timeoutDraft ??
+    (settings ? String(timeoutMsToSeconds(settings.inactivityTimeoutMs)) : "");
+
+  async function saveTimeout() {
+    if (!settings) return;
+    const parsed = Number(timeoutSeconds);
+    const nextMs = timeoutSecondsToMs(parsed);
+    setTimeoutDraft(null);
+    await settingsRepo.put({ ...settings, inactivityTimeoutMs: nextMs });
+    setMessage(`Inactivity timeout set to ${timeoutMsToSeconds(nextMs)}s.`);
+  }
 
   async function run(label: string, fn: () => Promise<void>) {
     setBusy(true);
@@ -118,8 +139,33 @@ export default function SettingsPage() {
       <Card as="section" className="space-y-3">
         <h2 className="font-semibold">Session & analysis</h2>
         <p className="text-sm text-muted">
-          Inactivity timeout: {settings ? settings.inactivityTimeoutMs / 1000 : "—"}s
+          New session after this many seconds without a tool call. Range{" "}
+          {TIMEOUT_SECONDS_MIN} to {TIMEOUT_SECONDS_MAX}s.
         </p>
+        <form
+          className="flex flex-wrap items-end gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void saveTimeout();
+          }}
+        >
+          <label className="text-sm">
+            Inactivity timeout (seconds)
+            <input
+              className="mt-1 block w-28 rounded border border-border bg-transparent px-2 py-1"
+              type="number"
+              min={TIMEOUT_SECONDS_MIN}
+              max={TIMEOUT_SECONDS_MAX}
+              value={timeoutSeconds}
+              onChange={(e) => setTimeoutDraft(e.target.value)}
+              aria-label="Inactivity timeout in seconds"
+              disabled={busy || !settings}
+            />
+          </label>
+          <Button type="submit" variant="secondary" disabled={busy || !settings}>
+            Save timeout
+          </Button>
+        </form>
         <div className="flex flex-wrap gap-2">
           <Button
             variant="secondary"
@@ -202,17 +248,17 @@ export default function SettingsPage() {
 
       <Card as="section" className="space-y-3">
         <h2 className="font-semibold">Export / import</h2>
+        <p className="text-sm text-muted">
+          Export writes every IndexedDB table. Import replaces local data with
+          that dump.
+        </p>
         <div className="flex flex-wrap gap-2">
           <Button
             variant="secondary"
             disabled={busy}
             onClick={() =>
               void run("Export downloaded.", async () => {
-                const db = getDb();
-                const dump: Record<string, unknown> = {};
-                for (const table of db.tables) {
-                  dump[table.name] = await table.toArray();
-                }
+                const dump = await exportDump();
                 const blob = new Blob([JSON.stringify(dump, null, 2)], {
                   type: "application/json",
                 });
@@ -226,6 +272,32 @@ export default function SettingsPage() {
             }
           >
             Export JSON
+          </Button>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept="application/json,.json"
+            className="sr-only"
+            aria-label="Import JSON file"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (!file) return;
+              void file.text().then((text) => {
+                try {
+                  setPendingDump(JSON.parse(text));
+                } catch {
+                  setMessage("Import file is not valid JSON.");
+                }
+              });
+            }}
+          />
+          <Button
+            variant="secondary"
+            disabled={busy}
+            onClick={() => importInputRef.current?.click()}
+          >
+            Import JSON…
           </Button>
         </div>
       </Card>
@@ -247,6 +319,39 @@ export default function SettingsPage() {
           Reset all data
         </Button>
       </Card>
+
+      <Dialog
+        open={pendingDump != null}
+        title="Replace local data?"
+        onClose={() => setPendingDump(null)}
+        actions={
+          <>
+            <Button variant="secondary" onClick={() => setPendingDump(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              disabled={busy}
+              onClick={() =>
+                void run("Import complete.", async () => {
+                  const dump = pendingDump;
+                  setPendingDump(null);
+                  await importDump(dump);
+                  resetSessionizer();
+                  await analysis.refresh();
+                })
+              }
+            >
+              Replace data
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm">
+          This clears current ToolGap tables and writes the imported dump. Use a
+          file produced by Export JSON.
+        </p>
+      </Dialog>
     </div>
   );
 }
