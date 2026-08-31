@@ -38,6 +38,8 @@ function journey(steps: JourneyStep[], overrides: Partial<Journey> = {}): Journe
     endedAt: 100,
     durationMs: 99,
     callCount: steps.length,
+    state: "final",
+    lastEventSeq: steps.length,
     outcome: "abandoned",
     inferredIntent: "comparison",
     frictionScore: 0,

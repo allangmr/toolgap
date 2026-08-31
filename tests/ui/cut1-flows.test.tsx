@@ -54,6 +54,8 @@ function journeyStub(id: string, sessionId: string, startedAt: number): Journey 
     endedAt: startedAt + 50,
     durationMs: 50,
     callCount: 4,
+    state: "final",
+    lastEventSeq: 4,
     outcome: "abandoned",
     inferredIntent: "comparison",
     frictionScore: 2,

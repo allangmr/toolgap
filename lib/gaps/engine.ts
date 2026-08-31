@@ -1,4 +1,8 @@
 import { createId, mean, nowMs, round } from "@/lib/shared";
+import {
+  completionRate as journeyCompletionRate,
+  isSettled,
+} from "@/lib/journeys/reconstruct";
 import type {
   CapabilityGap,
   EntityType,
@@ -113,20 +117,11 @@ export function mergeSignalsIntoGaps(
       continue;
     }
 
-    const allSignalIds = new Set([
-      ...(existing?.signalIds ?? []),
-      ...keySignals.map((s) => s.id),
-    ]);
-    // For confidence, use the current batch + we don't have old signal objects; use keySignals avg
-    // Prefer merging with existing confidence
-    const sessionIds = new Set<string>([
-      ...(existing?.supportingSessionIds ?? []),
-      ...keySignals.map((s) => s.sessionId),
-    ]);
+    // Derived from the live signal set only. Carrying ids forward from the
+    // previous gap would strand signals that a refreshed journey deleted.
+    const allSignalIds = new Set(keySignals.map((s) => s.id));
+    const sessionIds = new Set<string>(keySignals.map((s) => s.sessionId));
     const journeyIds = new Set(keySignals.map((s) => s.journeyId));
-    if (existing) {
-      // approximate: keep prior journey influence via session count
-    }
 
     const supportingJourneys = [...journeyIds]
       .map((id) => journeyById.get(id))
@@ -144,19 +139,16 @@ export function mergeSignalsIntoGaps(
         ? 0
         : sessionIds.size / Math.max(relevantJourneys.length, 1);
 
-    const confidence = mean([
-      ...(existing ? [existing.confidence] : []),
-      ...keySignals.map((s) => s.confidence),
-    ]);
+    const confidence = mean(keySignals.map((s) => s.confidence));
 
     const avgCalls =
       supportingJourneys.length > 0
         ? mean(supportingJourneys.map((j) => j.callCount))
         : (existing?.currentAvgCallCount ?? 0);
+    const settled = supportingJourneys.filter(isSettled);
     const completionRate =
-      supportingJourneys.length > 0
-        ? supportingJourneys.filter((j) => j.outcome === "completed").length /
-          supportingJourneys.length
+      settled.length > 0
+        ? journeyCompletionRate(settled)
         : (existing?.currentCompletionRate ?? 0);
 
     const avgWasted = mean(keySignals.map((s) => s.wastedCallsEstimate));

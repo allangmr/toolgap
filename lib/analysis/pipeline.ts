@@ -11,7 +11,7 @@ import { mergeSignalsIntoGaps } from "@/lib/gaps/engine";
 import { buildJourneyFromEvents } from "@/lib/journeys/reconstruct";
 import { finalizeExpiredSessions } from "@/lib/sessions/sessionizer";
 import { nowMs } from "@/lib/shared";
-import type { FrictionSignal, Journey } from "@/lib/shared/types";
+import type { FrictionSignal, Journey, JourneyState } from "@/lib/shared/types";
 import { telemetryRecorder } from "@/lib/telemetry/recorder";
 
 export interface AnalysisResult {
@@ -26,32 +26,55 @@ export async function runAnalysis(): Promise<AnalysisResult> {
   await telemetryRecorder.flush();
 
   const finalized = await finalizeExpiredSessions();
-  // Also finalize sessions that are still active but we want journeys for seed:
-  // For analysis, build journeys for any session that has events and is not active
-  // OR has been inactive — additionally build for completed/expired without journeys.
 
   const sessions = await sessionRepo.all();
   const existingJourneys = await journeyRepo.all();
-  const journeyedSessions = new Set(existingJourneys.map((j) => j.sessionId));
+  // Keyed by session so an evolving active session keeps one journey id.
+  const journeyBySession = new Map(existingJourneys.map((j) => [j.sessionId, j]));
 
-  const newJourneys: Journey[] = [];
+  const changedJourneys: Journey[] = [];
+  const refreshedJourneyIds: string[] = [];
+
   for (const session of sessions) {
-    if (journeyedSessions.has(session.id)) continue;
-    if (session.status === "active") continue;
+    const existing = journeyBySession.get(session.id);
+    const state: JourneyState =
+      session.status === "active" ? "provisional" : "final";
+    // A settled journey whose session is closed can never change again.
+    if (existing && existing.state === "final" && state === "final") continue;
+
     const events = await toolCallRepo.bySession(session.id);
     const storeEvents = events.filter((e) => e.surface === "store");
-    const journey = buildJourneyFromEvents(session.id, storeEvents);
-    if (journey) {
-      // attach friction score later
-      newJourneys.push(journey);
+    const built = buildJourneyFromEvents(session.id, storeEvents, { state });
+    if (!built) continue;
+
+    if (!existing) {
+      journeyBySession.set(session.id, built);
+      changedJourneys.push(built);
+      continue;
     }
+
+    // Settling a provisional journey counts as a change even when no calls
+    // arrived, because the outcome stops being in_progress.
+    const unchanged =
+      existing.state === state &&
+      existing.callCount === built.callCount &&
+      existing.lastEventSeq === built.lastEventSeq;
+    if (unchanged) continue;
+
+    const refreshed: Journey = { ...built, id: existing.id };
+    journeyBySession.set(session.id, refreshed);
+    changedJourneys.push(refreshed);
+    refreshedJourneyIds.push(existing.id);
   }
 
-  if (newJourneys.length > 0) {
-    await journeyRepo.putMany(newJourneys);
+  if (changedJourneys.length > 0) {
+    await journeyRepo.putMany(changedJourneys);
   }
 
-  const allJourneys = [...existingJourneys, ...newJourneys];
+  // A refreshed snapshot invalidates the signals derived from the previous one.
+  await frictionRepo.deleteByJourneys(refreshedJourneyIds);
+
+  const allJourneys = [...journeyBySession.values()];
   const existingSignals = await frictionRepo.all();
   const signaledJourneys = new Set(existingSignals.map((s) => s.journeyId));
 
@@ -84,7 +107,7 @@ export async function runAnalysis(): Promise<AnalysisResult> {
 
   return {
     finalizedSessions: finalized.length,
-    journeysBuilt: newJourneys.length,
+    journeysBuilt: changedJourneys.length,
     signalsCreated: newSignals.length,
     gapsUpdated: merged.length,
     at: nowMs(),
@@ -100,16 +123,6 @@ export async function rebuildDerivedData(): Promise<AnalysisResult> {
     lastAnalyzedEventTimestamp: 0,
     analysisVersion: 1,
   });
-
-  // Mark all non-active sessions as expired so journeys rebuild
-  const sessions = await sessionRepo.all();
-  for (const session of sessions) {
-    if (session.status === "active") {
-      session.status = "expired";
-      session.endedAt = session.lastActivityAt;
-    }
-  }
-  await sessionRepo.putMany(sessions);
 
   return runAnalysis();
 }

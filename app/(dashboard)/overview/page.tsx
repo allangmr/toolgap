@@ -15,6 +15,7 @@ import { useAnalysisStatus } from "@/components/providers/AnalysisStatusProvider
 import { useState } from "react";
 import { round } from "@/lib/shared";
 import { sparklineValues } from "@/lib/analytics/sparkline";
+import { isSettled } from "@/lib/journeys/reconstruct";
 
 export default function OverviewPage() {
   const sessions = useLiveQuery(() => sessionRepo.all(), []) ?? [];
@@ -33,7 +34,8 @@ export default function OverviewPage() {
     return sev[b.severity] - sev[a.severity] || b.confidence - a.confidence;
   })[0];
 
-  const completed = journeys.filter((j) => j.outcome === "completed").length;
+  const settledJourneys = journeys.filter(isSettled);
+  const completed = settledJourneys.filter((j) => j.outcome === "completed").length;
   const frictionRate =
     journeys.length === 0
       ? 0
@@ -44,7 +46,7 @@ export default function OverviewPage() {
     sessions.map((s) => ({ at: s.startedAt, value: s.callCount })),
   );
   const completedSpark = sparklineValues(
-    journeys.map((j) => ({
+    settledJourneys.map((j) => ({
       at: j.startedAt,
       value: j.outcome === "completed" ? 1 : 0,
     })),
@@ -101,7 +103,7 @@ export default function OverviewPage() {
             <Stat
               label="Successful journeys"
               value={completed}
-              hint={`${journeys.length} total`}
+              hint={`${settledJourneys.length} settled`}
               sparkline={completedSpark}
             />
             <Stat
