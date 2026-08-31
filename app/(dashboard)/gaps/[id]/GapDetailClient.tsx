@@ -350,8 +350,8 @@ export default function GapDetailClient({ id }: { id: string }) {
             </div>
             <p className="text-sm text-muted">
               Estimated call reduction:{" "}
-              {recommendation.estimatedBenefit.callReduction} · estimated latency
-              reduction: {recommendation.estimatedBenefit.latencyReductionMs}ms
+              {recommendation.estimatedBenefit.callReduction} fewer calls per
+              affected journey. See the Simulation tab for durations.
             </p>
           </Card>
         )}

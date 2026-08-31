@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { resetDbForTests } from "@/lib/db/schema";
 import { exportDump, importDump } from "@/lib/db/dump";
-import { sessionRepo, settingsRepo } from "@/lib/db/repositories";
+import {
+  recommendationRepo,
+  sessionRepo,
+  settingsRepo,
+} from "@/lib/db/repositories";
 import { resetSessionizer } from "@/lib/sessions/sessionizer";
 
 describe("IndexedDB dump", () => {
@@ -50,5 +54,35 @@ describe("IndexedDB dump", () => {
     await importDump({ sessions: [] });
     const settings = await settingsRepo.get();
     expect(settings.inactivityTimeoutMs).toBeGreaterThan(0);
+  });
+
+  it("imports a dump written before latencyReductionMs was dropped", async () => {
+    await importDump({
+      recommendations: [
+        {
+          id: "r-legacy",
+          gapId: "g-legacy",
+          templateType: "COMPARE",
+          proposedToolName: "compare_products",
+          description: "legacy",
+          inputSchemaJson: {},
+          outputShapeJson: {},
+          templateConfig: {},
+          estimatedBenefit: {
+            callReduction: 4,
+            latencyReductionMs: 320,
+            basis: "estimated",
+          },
+          risks: [],
+          explanation: { text: "legacy", generatedBy: "deterministic" },
+          status: "ready",
+          createdBy: "system",
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      ],
+    });
+    const stored = await recommendationRepo.get("r-legacy");
+    expect(stored?.estimatedBenefit.callReduction).toBe(4);
   });
 });

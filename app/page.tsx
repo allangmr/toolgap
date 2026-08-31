@@ -20,7 +20,7 @@ const steps = [
   },
   {
     title: "You publish the fix",
-    body: "A safe, read-only template becomes a recommendation. Simulate it, approve it, and the new tool registers through WebMCP instantly. Before/after impact is measured on real traffic.",
+    body: "A safe, read-only template becomes a recommendation. Simulate it, approve it, and the new tool registers through WebMCP instantly. Before/after impact is measured on the calls ToolGap recorded.",
   },
 ];
 

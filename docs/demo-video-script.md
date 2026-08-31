@@ -16,7 +16,7 @@ Screen: click "Load sample data", then open `/store` briefly, then the Sessions 
 
 Narration:
 
-> This is Fieldkit Market, a demo store that exposes WebMCP tools like search, get product, and checkout. I just replayed twenty-three real agent sessions against it. ToolGap recorded every tool call, rebuilt each journey, and scored the friction.
+> This is Fieldkit Market, a demo store that exposes WebMCP tools like search, get product, and checkout. I just replayed twenty-three sample agent sessions against it, driven through the same WebMCP path a real agent uses. ToolGap recorded every tool call, rebuilt each journey, and scored the friction.
 
 ## Scene 3. The gap (0:45 to 1:25)
 

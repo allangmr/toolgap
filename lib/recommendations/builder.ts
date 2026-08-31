@@ -83,8 +83,6 @@ export function buildRecommendation(
   const inputSchema = template.buildInputSchema(validConfig as never);
   const proposedCalls = 2; // search + new capability (typical)
   const callReduction = Math.max(0, gap.currentAvgCallCount - proposedCalls);
-  // latency: rough estimate — label as estimated
-  const latencyReductionMs = round(callReduction * 80, 0);
 
   const explanation = buildExplanation(gap, toolName, callReduction);
 
@@ -100,7 +98,6 @@ export function buildRecommendation(
     templateConfig: validConfig,
     estimatedBenefit: {
       callReduction: round(callReduction, 2),
-      latencyReductionMs,
       basis: "estimated",
     },
     risks: [...template.risks],
