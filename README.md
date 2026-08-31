@@ -12,7 +12,13 @@ Agents already visit your site. Without WebMCP they scrape HTML, you cannot tell
 - The gap becomes computable. When an agent calls `get_product` seven times in a row to compare items, the missing `compare_products` capability is visible in the call log itself.
 - The fix ships through the same channel. ToolGap publishes the recommended tool with `navigator.modelContext.registerTool` at runtime. No app release, no API gateway change, and the next agent session already has the capability.
 
-What people and agents now do together: agents get the tool they were fumbling toward, and the site owner stays in the loop. Every published capability is a safe, read-only template that a human simulated, reviewed, and approved, and its before/after impact is measured on real agent traffic.
+What people and agents now do together: agents get the tool they were fumbling toward, and the site owner stays in the loop. Every published capability is a safe, read-only template that a human simulated, reviewed, and approved, and its before/after impact is measured on the WebMCP calls ToolGap actually recorded.
+
+## Live demo
+
+[https://toolgap.netlify.app](https://toolgap.netlify.app)
+
+Start at the root for the walkthrough. The dashboard is at `/overview` and the instrumented store is at `/store`.
 
 ## Requirements
 
@@ -47,9 +53,11 @@ Open:
 
 ToolGap uses `navigator.modelContext.registerTool` / `unregisterTool`.
 
-1. **Native** — Chrome with WebMCP enabled (Canary / flag). Detected automatically.
-2. **Polyfill** — set `NEXT_PUBLIC_WEBMCP_POLYFILL=1` to load `@mcp-b/global`.
+1. **Native** — Chrome with WebMCP enabled (Canary / flag). Detected automatically and always preferred.
+2. **Polyfill** — set `NEXT_PUBLIC_WEBMCP_POLYFILL=1` to load `@mcp-b/global`. The deployed site runs this mode.
 3. **Noop** — when neither is available. The app and analytics still work; tools are not exposed to agents. Use **Settings → Run live agent-driver** or seed data instead.
+
+The sample data seeder, the live agent-driver, and the test suite all enter the registry through the same instrumented path a real agent uses. That makes them good regression checks and **not** external-agent verification. To verify a real model, follow [docs/external-agent-verification.md](docs/external-agent-verification.md).
 
 ## First run
 

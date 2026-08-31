@@ -46,3 +46,16 @@ describe("gap type to template mapping", () => {
     expect(rec?.proposedToolName).toBe("compare_products");
   });
 });
+
+describe("estimated benefit honesty", () => {
+  it("reports only the counted call reduction, with no latency figure", () => {
+    const rec = buildRecommendation(gap("COMPARE"));
+    expect(rec).not.toBeNull();
+    expect(rec!.estimatedBenefit.callReduction).toBe(4);
+    expect(rec!.estimatedBenefit.basis).toBe("estimated");
+    expect(Object.keys(rec!.estimatedBenefit).sort()).toEqual([
+      "basis",
+      "callReduction",
+    ]);
+  });
+});

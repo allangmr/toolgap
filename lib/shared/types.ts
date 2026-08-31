@@ -188,7 +188,6 @@ export interface CapabilityGap {
 
 export interface EstimatedBenefit {
   callReduction: number;
-  latencyReductionMs: number;
   basis: "estimated";
 }
 
