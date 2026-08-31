@@ -22,7 +22,13 @@ import {
   Tabs,
 } from "@/components/ui";
 import { JourneySignature } from "@/components/dashboard/JourneySignature";
-import { buildRecommendation, templateForGapType } from "@/lib/recommendations/builder";
+import { RecommendationConfigForm } from "@/components/dashboard/RecommendationConfigForm";
+import {
+  buildRecommendation,
+  templateForGapType,
+  type ConfigOverride,
+} from "@/lib/recommendations/builder";
+import type { Recommendation } from "@/lib/shared/types";
 import { simulate } from "@/lib/recommendations/simulation";
 import { dismissGap, transitionGap } from "@/lib/gaps/engine";
 import {
@@ -55,6 +61,7 @@ export default function GapDetailClient({ id }: { id: string }) {
 
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [issues, setIssues] = useState<string[]>([]);
   const [publishOpen, setPublishOpen] = useState(false);
   const [dismissOpen, setDismissOpen] = useState(false);
   const [dismissReason, setDismissReason] = useState("");
@@ -78,12 +85,20 @@ export default function GapDetailClient({ id }: { id: string }) {
   async function onBuildRecommendation() {
     setBusy(true);
     setMessage(null);
+    setIssues([]);
     try {
-      const rec = buildRecommendation(gap!, {
+      const result = buildRecommendation(gap!, {
         takenToolNames: published.map((p) => p.toolName),
         createdBy: "human",
       });
-      if (!rec) throw new Error("No template available for this gap type");
+      if (!result.ok) {
+        throw new Error(
+          result.reason === "no_template"
+            ? "No template available for this gap type"
+            : result.issues.join(" "),
+        );
+      }
+      const rec = result.recommendation;
       const existing = await recommendationRepo.byGap(gap!.id);
       if (existing) rec.id = existing.id;
       await recommendationRepo.put(rec);
@@ -96,6 +111,56 @@ export default function GapDetailClient({ id }: { id: string }) {
       );
       setMessage("Recommendation created.");
       setTab("recommendation");
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onSaveConfig(override: ConfigOverride) {
+    if (!recommendation || !gap) return;
+    setBusy(true);
+    setMessage(null);
+    setIssues([]);
+    try {
+      const takenToolNames = published
+        .filter((p) => p.status === "active" && p.toolName !== recommendation.proposedToolName)
+        .map((p) => p.toolName);
+      const result = buildRecommendation(gap, {
+        takenToolNames,
+        createdBy: "human",
+        override,
+      });
+      if (!result.ok) {
+        setIssues(
+          result.reason === "no_template"
+            ? ["No template available for this gap type"]
+            : result.issues,
+        );
+        return;
+      }
+
+      const rebuilt: Recommendation = {
+        ...result.recommendation,
+        id: recommendation.id,
+        createdAt: recommendation.createdAt,
+        updatedAt: Date.now(),
+      };
+      await recommendationRepo.put(rebuilt);
+
+      await simulationRepo.deleteByRecommendation(recommendation.id);
+
+      await gapRepo.put(
+        transitionGap(
+          { ...gap, recommendationId: rebuilt.id },
+          "recommendation_ready",
+          "human",
+        ),
+      );
+      setMessage(
+        "Configuration saved. Simulate and approve again before publishing.",
+      );
     } catch (e) {
       setMessage(e instanceof Error ? e.message : String(e));
     } finally {
@@ -334,12 +399,25 @@ export default function GapDetailClient({ id }: { id: string }) {
                 {JSON.stringify(recommendation.inputSchemaJson, null, 2)}
               </pre>
             </div>
-            <div>
-              <h3 className="text-sm font-semibold">Template config</h3>
-              <pre className="mt-1 overflow-x-auto rounded bg-surface-muted p-3 text-xs">
-                {JSON.stringify(recommendation.templateConfig, null, 2)}
-              </pre>
-            </div>
+            {recommendation.status === "published" ? (
+              <div>
+                <h3 className="text-sm font-semibold">Template config</h3>
+                <pre className="mt-1 overflow-x-auto rounded bg-surface-muted p-3 text-xs">
+                  {JSON.stringify(recommendation.templateConfig, null, 2)}
+                </pre>
+                <p className="mt-1 text-xs text-muted">
+                  Published capabilities are no longer editable here.
+                </p>
+              </div>
+            ) : (
+              <RecommendationConfigForm
+                key={recommendation.updatedAt}
+                templateConfig={recommendation.templateConfig}
+                issues={issues}
+                busy={busy}
+                onSave={(override) => void onSaveConfig(override)}
+              />
+            )}
             <div>
               <h3 className="text-sm font-semibold">Risks</h3>
               <ul className="mt-1 list-disc pl-5 text-sm">

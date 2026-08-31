@@ -37,9 +37,6 @@ export async function publishRecommendation(
 ): Promise<PublishedCapability> {
   const rec = await recommendationRepo.get(recommendationId);
   if (!rec) throw new Error("Recommendation not found");
-  if (rec.status !== "approved" && rec.status !== "simulated") {
-    // Allow publish from approved; if simulated, require approve first ideally
-  }
   if (rec.status !== "approved") {
     throw new Error("Recommendation must be approved before publishing");
   }
