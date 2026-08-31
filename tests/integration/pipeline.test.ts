@@ -42,11 +42,17 @@ describe("seed → analysis → gap pipeline", () => {
 
     const failureGap = gaps.find((g) => g.type === "FAILURE_LOOP");
     expect(failureGap).toBeDefined();
-    expect(buildRecommendation(failureGap!)).toBeNull();
+    expect(buildRecommendation(failureGap!)).toEqual({
+      ok: false,
+      reason: "no_template",
+    });
 
     const filterGap = gaps.find((g) => g.type === "FILTER");
     expect(filterGap).toBeDefined();
-    expect(buildRecommendation(filterGap!)).toBeNull();
+    expect(buildRecommendation(filterGap!)).toEqual({
+      ok: false,
+      reason: "no_template",
+    });
   });
 
   it("re-seeding replaces observed data instead of appending", async () => {
@@ -62,8 +68,9 @@ describe("seed → analysis → gap pipeline", () => {
     await runAnalysis();
     const gap = (await gapRepo.all()).find((g) => g.type === "COMPARE");
     expect(gap).toBeDefined();
-    const rec = buildRecommendation(gap!);
-    expect(rec).not.toBeNull();
+    const built = buildRecommendation(gap!);
+    expect(built.ok).toBe(true);
+    const rec = built.ok ? built.recommendation : null;
     expect(rec!.proposedToolName).toBe("compare_products");
     expect(rec!.explanation.generatedBy).toBe("deterministic");
     expect(rec!.estimatedBenefit.basis).toBe("estimated");
@@ -107,7 +114,9 @@ describe("webmcp registry instrumentation", () => {
     await seedAllScenarios();
     await runAnalysis();
     const gap = (await gapRepo.all()).find((g) => g.type === "COMPARE")!;
-    const rec = buildRecommendation(gap)!;
+    const built = buildRecommendation(gap);
+    if (!built.ok) throw new Error("expected a COMPARE recommendation");
+    const rec = built.recommendation;
     await recommendationRepo.put(rec);
     const journeys = await journeyRepo.all();
     const sim = simulate(
