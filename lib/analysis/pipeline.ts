@@ -11,7 +11,7 @@ import { mergeSignalsIntoGaps } from "@/lib/gaps/engine";
 import { buildJourneyFromEvents } from "@/lib/journeys/reconstruct";
 import { finalizeExpiredSessions } from "@/lib/sessions/sessionizer";
 import { nowMs } from "@/lib/shared";
-import type { FrictionSignal, Journey } from "@/lib/shared/types";
+import type { FrictionSignal, Journey, JourneyState } from "@/lib/shared/types";
 import { telemetryRecorder } from "@/lib/telemetry/recorder";
 
 export interface AnalysisResult {
@@ -37,14 +37,14 @@ export async function runAnalysis(): Promise<AnalysisResult> {
 
   for (const session of sessions) {
     const existing = journeyBySession.get(session.id);
-    // A finalized session can never gain calls, so its journey is done.
-    if (existing && session.status !== "active") continue;
+    const state: JourneyState =
+      session.status === "active" ? "provisional" : "final";
+    // A settled journey whose session is closed can never change again.
+    if (existing && existing.state === "final" && state === "final") continue;
 
     const events = await toolCallRepo.bySession(session.id);
     const storeEvents = events.filter((e) => e.surface === "store");
-    const built = buildJourneyFromEvents(session.id, storeEvents, {
-      state: session.status === "active" ? "provisional" : "final",
-    });
+    const built = buildJourneyFromEvents(session.id, storeEvents, { state });
     if (!built) continue;
 
     if (!existing) {
@@ -53,12 +53,13 @@ export async function runAnalysis(): Promise<AnalysisResult> {
       continue;
     }
 
-    if (
+    // Settling a provisional journey counts as a change even when no calls
+    // arrived, because the outcome stops being in_progress.
+    const unchanged =
+      existing.state === state &&
       existing.callCount === built.callCount &&
-      existing.lastEventSeq === built.lastEventSeq
-    ) {
-      continue;
-    }
+      existing.lastEventSeq === built.lastEventSeq;
+    if (unchanged) continue;
 
     const refreshed: Journey = { ...built, id: existing.id };
     journeyBySession.set(session.id, refreshed);
