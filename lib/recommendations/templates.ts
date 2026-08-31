@@ -39,7 +39,7 @@ export const compareTemplate: CapabilityTemplate<CompareConfig> = {
   risks: [
     "Limited to whitelisted product fields",
     "Batch size capped to prevent oversized responses",
-    "Read-only — cannot mutate inventory or cart",
+    "Read-only - cannot mutate inventory or cart",
   ],
   defaultToolName: () => "compare_products",
   configSchema: z.object({
@@ -65,10 +65,9 @@ export const compareTemplate: CapabilityTemplate<CompareConfig> = {
     return async (params) => {
       const productIds = params.productIds as string[];
       if (productIds.length > config.maxBatchSize) {
-        throw Object.assign(
-          new Error(`Max batch size is ${config.maxBatchSize}`),
-          { category: "validation" as const },
-        );
+        throw Object.assign(new Error(`Max batch size is ${config.maxBatchSize}`), {
+          category: "validation" as const,
+        });
       }
       const fields = effectiveFields(
         config.fields,
@@ -197,10 +196,7 @@ export function getTemplate(type: TemplateType) {
   return templates[type];
 }
 
-export function effectiveFields(
-  configured: string[],
-  requested?: string[],
-): string[] {
+export function effectiveFields(configured: string[], requested?: string[]): string[] {
   const whitelist = new Set<string>(PRODUCT_FIELD_WHITELIST);
   const allowed = configured.filter((f) => whitelist.has(f));
   const allowedSet = new Set(allowed);

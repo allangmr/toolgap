@@ -38,36 +38,50 @@ export default function ToolDetailPage({
         <Link href="/tools" className="text-sm text-accent hover:underline">
           ← Tools
         </Link>
-        <h1 className="mt-2 font-mono text-2xl font-semibold">{toolName}</h1>
+        <h1 className="mt-3 font-mono text-3xl font-medium tracking-tight md:text-4xl">
+          {toolName}
+        </h1>
         <div className="mt-2 flex gap-2">
           <StatusBadge status={metrics.origin === "mixed" ? "dynamic" : metrics.origin} />
           {metrics.unused ? <StatusBadge status="inactive" /> : null}
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-4">
-        <Card>
-          <p className="text-xs text-muted">Calls</p>
-          <p className="text-xl font-semibold">{metrics.calls}</p>
-        </Card>
-        <Card>
-          <p className="text-xs text-muted">Success</p>
-          <p className="text-xl font-semibold">{round(metrics.successRate * 100, 1)}%</p>
-        </Card>
-        <Card>
-          <p className="text-xs text-muted">p50 / p95</p>
-          <p className="text-xl font-semibold">
+      <div className="grid gap-6 border-y border-border py-6 sm:grid-cols-4">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-wider text-muted">
+            Calls
+          </p>
+          <p className="mt-1 font-display text-3xl tabular-nums">{metrics.calls}</p>
+        </div>
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-wider text-muted">
+            Success
+          </p>
+          <p className="mt-1 font-display text-3xl tabular-nums">
+            {round(metrics.successRate * 100, 1)}%
+          </p>
+        </div>
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-wider text-muted">
+            p50 / p95
+          </p>
+          <p className="mt-1 font-display text-3xl tabular-nums">
             {metrics.p50LatencyMs} / {metrics.p95LatencyMs}ms
           </p>
-        </Card>
-        <Card>
-          <p className="text-xs text-muted">Sessions</p>
-          <p className="text-xl font-semibold">{metrics.uniqueSessions}</p>
-        </Card>
+        </div>
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-wider text-muted">
+            Sessions
+          </p>
+          <p className="mt-1 font-display text-3xl tabular-nums">
+            {metrics.uniqueSessions}
+          </p>
+        </div>
       </div>
 
       <Card as="section">
-        <h2 className="font-semibold">Latency distribution</h2>
+        <h2 className="font-display text-lg font-medium">Latency distribution</h2>
         <svg
           role="img"
           aria-label={`Latency histogram for ${toolName}`}
@@ -109,7 +123,7 @@ export default function ToolDetailPage({
       </Card>
 
       <Card as="section">
-        <h2 className="font-semibold">Error distribution</h2>
+        <h2 className="font-display text-lg font-medium">Error distribution</h2>
         <ul className="mt-2 text-sm">
           {Object.entries(metrics.errorDistribution).length === 0 ? (
             <li className="text-muted">No errors recorded.</li>
@@ -124,7 +138,7 @@ export default function ToolDetailPage({
       </Card>
 
       <Card as="section">
-        <h2 className="font-semibold">Commonly used with</h2>
+        <h2 className="font-display text-lg font-medium">Commonly used with</h2>
         <ul className="mt-2 text-sm">
           {co.slice(0, 8).map((c) => (
             <li key={c.tool}>
@@ -135,8 +149,10 @@ export default function ToolDetailPage({
       </Card>
 
       <Card as="section">
-        <h2 className="font-semibold">Related journeys</h2>
-        <p className="mt-1 text-sm text-muted">{relatedJourneys.length} journeys include this tool.</p>
+        <h2 className="font-display text-lg font-medium">Related journeys</h2>
+        <p className="mt-1 text-sm text-muted">
+          {relatedJourneys.length} journeys include this tool.
+        </p>
       </Card>
     </div>
   );
@@ -148,7 +164,7 @@ function bucket(values: number[], n: number): Array<{ label: string; count: numb
   const max = Math.max(...values);
   const width = Math.max(1, (max - min) / n);
   const buckets = Array.from({ length: n }, (_, i) => ({
-    label: `${Math.round(min + i * width)}–${Math.round(min + (i + 1) * width)}ms`,
+    label: `${Math.round(min + i * width)}-${Math.round(min + (i + 1) * width)}ms`,
     count: 0,
   }));
   for (const v of values) {

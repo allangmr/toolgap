@@ -7,6 +7,8 @@ import { gapRepo } from "@/lib/db/repositories";
 import { templateForGapType } from "@/lib/recommendations/builder";
 import { GapCard } from "@/components/dashboard/GapCard";
 import { EmptyState } from "@/components/ui";
+import { PageHeader } from "@/components/dashboard/PageHeader";
+import { EvidencePulse } from "@/components/viz/EvidencePulse";
 
 export default function GapsPageClient() {
   const gaps = useLiveQuery(() => gapRepo.all(), []) ?? [];
@@ -33,21 +35,19 @@ export default function GapsPageClient() {
     });
 
   return (
-    <div className="space-y-4">
-      <header>
-        <h1 className="text-2xl font-semibold">Capability Gaps</h1>
-        <p className="text-sm text-muted">
-          Evidence that agents need higher-level WebMCP capabilities.
-        </p>
-      </header>
+    <div className="space-y-6">
+      <PageHeader
+        title="Capability Gaps"
+        description="Evidence that agents need higher-level WebMCP capabilities."
+      />
 
-      <div className="flex gap-2 text-sm">
+      <div className="flex flex-wrap gap-1 text-sm">
         {["open", "detected", "published", "resolved", "dismissed", "all"].map((s) => (
           <button
             key={s}
             type="button"
-            className={`rounded px-3 py-1 ${
-              status === s ? "bg-accent text-white" : "bg-surface-muted"
+            className={`rounded-[4px] px-3 py-1 ${
+              status === s ? "bg-accent text-accent-ink" : "bg-surface-muted text-muted"
             }`}
             onClick={() => router.push(`/gaps?status=${s}`)}
           >
@@ -58,8 +58,9 @@ export default function GapsPageClient() {
 
       {visible.length === 0 ? (
         <EmptyState
-          title="No capability gaps yet"
-          description="Gaps appear when enough sessions show inefficient tool patterns. Load sample data from Overview or Settings."
+          title="No repeated gap signal yet"
+          description="ToolGap waits for repeated agent behavior before recommending changes. 3 supporting sessions are required."
+          visual={<EvidencePulse filled={0} threshold={3} />}
         />
       ) : (
         <div className="grid gap-3">

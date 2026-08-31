@@ -15,13 +15,17 @@ export function Stat({
   icon?: ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-surface p-4">
+    <div className="min-w-0">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
+        <p className="font-mono text-[11px] uppercase tracking-wider text-muted">
+          {label}
+        </p>
         {icon}
       </div>
-      <p className="mt-2 text-2xl font-semibold tabular-nums">{value}</p>
-      {hint ? <p className="mt-1 text-xs text-muted">{hint}</p> : null}
+      <p className="mt-2 font-display text-3xl font-medium tracking-tight tabular-nums">
+        {value}
+      </p>
+      {hint ? <p className="mt-1 font-mono text-[11px] text-muted">{hint}</p> : null}
       {sparkline ? (
         <div className="mt-3">
           <Sparkline values={sparkline} label={label} />

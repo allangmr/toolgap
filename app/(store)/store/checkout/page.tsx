@@ -15,7 +15,7 @@ export default function CheckoutPage() {
     <div className="mx-auto max-w-lg space-y-6">
       <h1 className="text-3xl font-semibold text-[#1c1917]">Checkout</h1>
       <p className="text-sm text-[#78716c]">
-        Simulated checkout — no payment is processed.
+        Simulated checkout. No payment is processed.
       </p>
 
       {!order ? (

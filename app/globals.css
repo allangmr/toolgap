@@ -1,24 +1,34 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f6f8;
-  --foreground: #0f172a;
-  --surface: #ffffff;
-  --surface-muted: #eef2f6;
-  --border: #d7dee8;
-  --border-strong: #b8c2d0;
-  --accent: #0f766e;
-  --accent-hover: #0d9488;
-  --accent-subtle: #ccfbf1;
-  --danger: #b91c1c;
-  --danger-subtle: #fee2e2;
-  --warning: #b45309;
-  --warning-subtle: #ffedd5;
-  --success: #15803d;
-  --success-subtle: #dcfce7;
-  --info: #1d4ed8;
-  --info-subtle: #dbeafe;
-  --muted: #64748b;
+  color-scheme: dark;
+  --background: #0c0e12;
+  --foreground: #eceef2;
+  --surface: #14171d;
+  --surface-muted: #1b1f27;
+  --surface-raised: #222733;
+  --border: #2c3342;
+  --border-strong: #3d4658;
+  --accent: #d99a3d;
+  --accent-hover: #e8ad55;
+  --accent-subtle: #2a2114;
+  --accent-ink: #141208;
+  --danger: #d46a5c;
+  --danger-subtle: #2c1714;
+  --warning: #d99a3d;
+  --warning-subtle: #2a2114;
+  --success: #6f9e78;
+  --success-subtle: #152018;
+  --info: #8b93a7;
+  --info-subtle: #1a1d24;
+  --muted: #9aa4b5;
+  --radius: 4px;
+  --shadow: 0 12px 40px rgb(8 10 14 / 0.45);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration: 220ms;
+  --z-nav: 40;
+  --z-overlay: 50;
+  --z-grain: 60;
 }
 
 @theme inline {
@@ -26,11 +36,13 @@
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
+  --color-surface-raised: var(--surface-raised);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-subtle: var(--accent-subtle);
+  --color-accent-ink: var(--accent-ink);
   --color-danger: var(--danger);
   --color-danger-subtle: var(--danger-subtle);
   --color-warning: var(--warning);
@@ -42,6 +54,12 @@
   --color-muted: var(--muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-space-grotesk);
+  --radius-sm: var(--radius);
+}
+
+html {
+  background: var(--background);
 }
 
 body {
@@ -62,10 +80,35 @@ body {
   z-index: 100;
   padding: 0.5rem 1rem;
   background: var(--accent);
-  color: white;
+  color: var(--accent-ink);
 }
 
 .skip-link:focus {
   left: 1rem;
   top: 1rem;
+}
+
+.lab-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-muted);
+  color: var(--foreground);
+  padding: 0.4rem 0.65rem;
+}
+
+.lab-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

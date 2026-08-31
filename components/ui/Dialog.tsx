@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useId,
-  useRef,
-  type ReactNode,
-  type RefObject,
-} from "react";
+import { useEffect, useId, useRef, type ReactNode, type RefObject } from "react";
 
 export function Dialog({
   open,
@@ -49,19 +43,19 @@ export function Dialog({
     <dialog
       ref={dialogRef as RefObject<HTMLDialogElement>}
       aria-labelledby={titleId}
-      className="w-[min(560px,calc(100vw-2rem))] rounded-lg border border-border bg-surface p-0 text-foreground shadow-xl backdrop:bg-black/40"
+      className="w-[min(560px,calc(100vw-2rem))] rounded-[4px] border border-border bg-surface p-0 text-foreground shadow-[var(--shadow)] backdrop:bg-[#0c0e12]/70"
       onClick={(e) => {
         if (e.target === dialogRef.current) onClose();
       }}
     >
       <div className="flex items-start justify-between border-b border-border px-5 py-4">
-        <h2 id={titleId} className="text-lg font-semibold">
+        <h2 id={titleId} className="font-display text-lg font-medium tracking-tight">
           {title}
         </h2>
         <button
           type="button"
           onClick={onClose}
-          className="rounded px-2 py-1 text-muted hover:bg-surface-muted"
+          className="rounded-[4px] px-2 py-1 text-muted hover:bg-surface-muted hover:text-foreground"
           aria-label="Close dialog"
         >
           ✕

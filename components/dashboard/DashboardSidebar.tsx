@@ -22,29 +22,30 @@ export function DashboardSidebar() {
   const analysis = useAnalysisStatus();
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-surface">
-      <div className="border-b border-border px-4 py-4">
+    <aside className="flex w-full shrink-0 flex-col border-b border-border bg-surface lg:w-60 lg:border-b-0 lg:border-r">
+      <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 lg:block lg:py-5">
         <Link href="/overview" className="block">
-          <p className="text-lg font-semibold tracking-tight text-accent">ToolGap</p>
-          <p className="text-xs text-muted">Agent Capability Intelligence</p>
+          <p className="font-display text-lg font-medium tracking-tight">ToolGap</p>
+          <p className="hidden font-mono text-[10px] uppercase tracking-wider text-muted lg:block">
+            Agent Capability Intelligence
+          </p>
         </Link>
-        <div className="mt-3">
+        <div className="lg:mt-3">
           <WebmcpStatusBadge />
         </div>
       </div>
-      <nav aria-label="Dashboard" className="flex-1 px-2 py-3">
-        <ul className="space-y-1">
+      <nav aria-label="Dashboard" className="px-2 py-2 lg:flex-1 lg:py-3">
+        <ul className="flex gap-1 overflow-x-auto lg:flex-col lg:space-y-0.5 lg:overflow-visible">
           {NAV.map((item) => {
-            const active =
-              pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
-              <li key={item.href}>
+              <li key={item.href} className="shrink-0">
                 <Link
                   href={item.href}
-                  className={`block rounded-md px-3 py-2 text-sm font-medium ${
+                  className={`block rounded-[4px] px-3 py-2 text-sm font-medium whitespace-nowrap ${
                     active
                       ? "bg-accent-subtle text-accent"
-                      : "text-foreground hover:bg-surface-muted"
+                      : "text-muted hover:bg-surface-muted hover:text-foreground"
                   }`}
                   aria-current={active ? "page" : undefined}
                 >
@@ -75,7 +76,7 @@ export function DashboardSidebar() {
           href="/store"
           className="mt-3 block text-center text-xs font-medium text-accent hover:underline"
         >
-          Open demo store →
+          Open demo store
         </Link>
       </div>
     </aside>

@@ -36,57 +36,71 @@ export function RecommendationConfigForm({
   }
 
   return (
-    <section className="space-y-4 rounded-lg border border-border bg-surface-muted/40 p-4">
+    <section className="space-y-6 border border-border bg-surface-muted/30 p-5">
       <div>
-        <h3 className="text-sm font-semibold">Edit before publishing</h3>
+        <h3 className="font-display text-lg font-medium">Capability</h3>
         <p className="mt-1 text-xs text-muted">
-          Changes are validated against the capability template, then applied to
-          the tool that gets registered. Editing clears the simulation and
-          returns the recommendation to unapproved.
+          You are shaping the agent-facing interface. Changes are validated against the
+          template, then applied to the tool that gets registered. Editing clears the
+          simulation and returns the recommendation to unapproved.
         </p>
       </div>
 
-      <label className="block text-sm">
-        Tool name
-        <input
-          className="mt-1 w-full rounded border border-border bg-surface px-2 py-1 font-mono"
-          value={draft.toolName ?? ""}
-          onChange={(e) => update({ toolName: e.target.value })}
-        />
-      </label>
+      <div className="space-y-4 border-t border-border pt-4">
+        <p className="font-mono text-[11px] uppercase tracking-wider text-muted">
+          Tool identity
+        </p>
+        <label className="block text-sm">
+          Tool name
+          <input
+            className="lab-input mt-1 font-mono"
+            value={draft.toolName ?? ""}
+            onChange={(e) => update({ toolName: e.target.value })}
+          />
+        </label>
+        <label className="block text-sm">
+          Description
+          <span className="ml-1 text-xs text-muted">
+            the text an agent reads when it decides whether to call this tool
+          </span>
+          <textarea
+            className="lab-input mt-1"
+            rows={3}
+            value={draft.description ?? ""}
+            onChange={(e) => update({ description: e.target.value })}
+          />
+        </label>
+      </div>
 
-      <label className="block text-sm">
-        Description
-        <span className="ml-1 text-xs text-muted">
-          the text an agent reads when it decides whether to call this tool
-        </span>
-        <textarea
-          className="mt-1 w-full rounded border border-border bg-surface px-2 py-1"
-          rows={3}
-          value={draft.description ?? ""}
-          onChange={(e) => update({ description: e.target.value })}
-        />
-      </label>
-
-      <label className="block text-sm">
-        Max batch size
-        <input
-          type="number"
-          className="mt-1 w-32 rounded border border-border bg-surface px-2 py-1 tabular-nums"
-          value={draft.maxBatchSize ?? 0}
-          onChange={(e) => update({ maxBatchSize: Number(e.target.value) })}
-        />
-      </label>
+      <div className="space-y-3 border-t border-border pt-4">
+        <p className="font-mono text-[11px] uppercase tracking-wider text-muted">
+          Input constraints
+        </p>
+        <label className="block text-sm">
+          Max batch size
+          <input
+            type="number"
+            className="lab-input mt-1 w-32 tabular-nums"
+            value={draft.maxBatchSize ?? 0}
+            onChange={(e) => update({ maxBatchSize: Number(e.target.value) })}
+          />
+        </label>
+      </div>
 
       {supportsFields ? (
-        <fieldset>
-          <legend className="text-sm">Exposed fields</legend>
+        <fieldset className="border-t border-border pt-4">
+          <legend className="font-mono text-[11px] uppercase tracking-wider text-muted">
+            Returned fields
+          </legend>
           <p className="text-xs text-muted">
             Only whitelisted product fields can be returned.
           </p>
-          <div className="mt-2 grid grid-cols-2 gap-1 sm:grid-cols-3">
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
             {PRODUCT_FIELD_WHITELIST.map((field) => (
-              <label key={field} className="flex items-center gap-2 text-xs">
+              <label
+                key={field}
+                className="flex items-center gap-2 border border-border px-2 py-1.5 text-xs"
+              >
                 <input
                   type="checkbox"
                   checked={selected.has(field)}

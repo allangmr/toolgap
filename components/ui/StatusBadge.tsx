@@ -1,8 +1,14 @@
 import { Badge } from "./Badge";
 
+const DASHED = new Set(["estimated", "inferred", "provisional"]);
+
 const STATUS_MAP: Record<
   string,
-  { label: string; tone: "neutral" | "accent" | "success" | "warning" | "danger" | "info"; icon: string }
+  {
+    label: string;
+    tone: "neutral" | "accent" | "success" | "warning" | "danger" | "info";
+    icon: string;
+  }
 > = {
   active: { label: "Active", tone: "success", icon: "●" },
   completed: { label: "Completed", tone: "accent", icon: "✓" },
@@ -13,7 +19,7 @@ const STATUS_MAP: Record<
   recommendation_ready: { label: "Ready", tone: "accent", icon: "→" },
   simulated: { label: "Simulated", tone: "info", icon: "≈" },
   approved: { label: "Approved", tone: "success", icon: "✓" },
-  dismissed: { label: "Dismissed", tone: "neutral", icon: "–" },
+  dismissed: { label: "Dismissed", tone: "neutral", icon: "-" },
   published: { label: "Published", tone: "success", icon: "↑" },
   resolved: { label: "Resolved", tone: "accent", icon: "✓" },
   draft: { label: "Draft", tone: "neutral", icon: "…" },
@@ -27,6 +33,7 @@ const STATUS_MAP: Record<
   measured: { label: "Measured", tone: "success", icon: "M" },
   estimated: { label: "Estimated", tone: "warning", icon: "E" },
   inferred: { label: "Inferred", tone: "info", icon: "?" },
+  provisional: { label: "Provisional", tone: "warning", icon: "~" },
 };
 
 export function StatusBadge({ status }: { status: string }) {
@@ -36,7 +43,7 @@ export function StatusBadge({ status }: { status: string }) {
     icon: "·",
   };
   return (
-    <Badge tone={mapped.tone}>
+    <Badge tone={mapped.tone} dashed={DASHED.has(status)}>
       <span aria-hidden="true">{mapped.icon}</span>
       <span>{mapped.label}</span>
     </Badge>
