@@ -111,7 +111,7 @@ function classifyOutcome(steps: JourneyStep[], state: JourneyState): JourneyOutc
 }
 
 function classifySettledOutcome(steps: JourneyStep[]): JourneyOutcome {
-  if (steps.length === 0) return "abandoned";
+  if (steps.length === 0) return "unknown";
   const last = steps[steps.length - 1]!;
   if (!last.success) return "failed";
   if (
@@ -127,7 +127,8 @@ function classifySettledOutcome(steps: JourneyStep[]): JourneyOutcome {
   // Failed tools in the middle without recovery
   const failures = steps.filter((s) => !s.success);
   if (failures.length >= 3) return "failed";
-  return "abandoned";
+  // Session ended without explicit task-completion evidence — not a measured failure.
+  return "unknown";
 }
 
 /**
@@ -138,16 +139,66 @@ export function isSettled(journey: Pick<Journey, "outcome">): boolean {
   return journey.outcome !== "in_progress";
 }
 
-export function completionRate(journeys: Array<Pick<Journey, "outcome">>): number {
-  const settled = journeys.filter(isSettled);
-  if (settled.length === 0) return 0;
-  return settled.filter((j) => j.outcome === "completed").length / settled.length;
+/** Legacy persisted rows may still carry `abandoned`; treat as unknown for display. */
+export function normalizeOutcome(outcome: JourneyOutcome): JourneyOutcome {
+  return outcome === "abandoned" ? "unknown" : outcome;
+}
+
+export function isCompletionMeasurable(
+  journeys: Array<Pick<Journey, "outcome">>,
+): boolean {
+  return journeys.some(
+    (j) =>
+      isSettled(j) &&
+      (j.outcome === "completed" || j.outcome === "failed"),
+  );
+}
+
+export function completionRate(
+  journeys: Array<Pick<Journey, "outcome">>,
+): number | null {
+  const known = journeys.filter(
+    (j) =>
+      isSettled(j) &&
+      (j.outcome === "completed" || j.outcome === "failed"),
+  );
+  if (known.length === 0) return null;
+  return known.filter((j) => j.outcome === "completed").length / known.length;
+}
+
+export function formatCompletionRate(
+  journeys: Array<Pick<Journey, "outcome">>,
+): string {
+  const rate = completionRate(journeys);
+  if (rate === null) return "Not measured";
+  return `${Math.round(rate * 1000) / 10}%`;
+}
+
+export function formatJourneyOutcome(outcome: JourneyOutcome): string {
+  switch (normalizeOutcome(outcome)) {
+    case "in_progress":
+      return "In progress";
+    case "unknown":
+      return "Not measured";
+    case "completed":
+      return "Completed";
+    case "failed":
+      return "Failed";
+    default:
+      return outcome;
+  }
 }
 
 export function inferIntent(steps: JourneyStep[], signature: string): InferredIntent {
   const tools = steps.map((s) => s.toolName);
   if (tools.includes("complete_checkout") || tools.includes("add_to_cart")) {
     return "purchase";
+  }
+  if (
+    tools.includes("compare_products") ||
+    tools.some((t) => t.startsWith("compare_"))
+  ) {
+    return "comparison";
   }
   const productGets = steps.filter((s) => s.toolName === "get_product");
   const distinctProducts = new Set(productGets.flatMap((s) => s.entityIds));
@@ -169,7 +220,7 @@ export function groupJourneyPatterns(
   journeyCount: number;
   avgCalls: number;
   avgDurationMs: number;
-  completionRate: number;
+  completionRate: number | null;
   inferredIntent: InferredIntent;
   journeyIds: string[];
 }> {

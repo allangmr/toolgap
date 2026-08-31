@@ -10,7 +10,13 @@ export type ErrorCategory =
 
 export type SessionStatus = "active" | "completed" | "expired";
 
-export type JourneyOutcome = "completed" | "abandoned" | "failed" | "in_progress";
+export type JourneyOutcome =
+  | "completed"
+  | "abandoned"
+  | "failed"
+  | "in_progress"
+  /** Session settled without explicit user-task completion evidence. */
+  | "unknown";
 
 /**
  * A journey rebuilt from a session that is still active is a snapshot, not a
@@ -182,7 +188,8 @@ export interface CapabilityGap {
   affectedSessions: number;
   percentageOfRelevantJourneys: number;
   currentAvgCallCount: number;
-  currentCompletionRate: number;
+  /** Null when supporting journeys have no measurable task-completion signal. */
+  currentCompletionRate: number | null;
   signalIds: string[];
   mergeKey: string;
   firstDetectedAt: number;
@@ -265,7 +272,7 @@ export interface WindowRange {
 
 export interface MeasuredWindowMetrics {
   avgCalls: number;
-  completionRate: number;
+  completionRate: number | null;
   avgDurationMs: number;
   sampleSize: number;
   source: "measured";

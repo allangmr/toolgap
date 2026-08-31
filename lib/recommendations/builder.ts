@@ -62,7 +62,8 @@ const DEFAULT_CONFIG: Record<
     fields: defaultCompareFields(),
     maxBatchSize: 10,
     toolName,
-    description: `Compare multiple products in one call. Suggested by ToolGap from ${gap.affectedSessions} sessions.`,
+    description:
+      "Compare multiple products in one call using selected product fields. Use this when the user needs to evaluate two or more products side by side.",
   }),
   AVAILABILITY_BATCH: (gap, toolName) => ({
     entity: "inventory",
@@ -196,8 +197,10 @@ function buildExplanation(
   return [
     `ToolGap detected a ${gap.type} gap affecting ${gap.affectedSessions} sessions`,
     `(${round(gap.percentageOfRelevantJourneys * 100, 1)}% of relevant journeys).`,
-    `Current average call count is ${gap.currentAvgCallCount} with completion rate`,
-    `${round(gap.currentCompletionRate * 100, 1)}%.`,
+    `Current average call count is ${gap.currentAvgCallCount} with task completion`,
+    gap.currentCompletionRate === null
+      ? "not measured."
+      : `${round(gap.currentCompletionRate * 100, 1)}%.`,
     `Confidence ${round(gap.confidence, 2)} (inferred intent: ${gap.detectedIntent}).`,
     `Proposed capability \`${toolName}\` is estimated to reduce calls by ~${round(callReduction, 1)}`,
     `per affected journey (estimated, based on deterministic rewrite).`,

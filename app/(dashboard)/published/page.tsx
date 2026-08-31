@@ -203,14 +203,24 @@ function PublishedCard({
             <div className="rounded border border-border p-3">
               <p className="text-xs text-muted">Before (measured)</p>
               <p>avg calls {snapshot.before.avgCalls}</p>
-              <p>completion {round(snapshot.before.completionRate * 100, 1)}%</p>
+              <p>
+                completion{" "}
+                {snapshot.before.completionRate === null
+                  ? "Not measured"
+                  : `${round(snapshot.before.completionRate * 100, 1)}%`}
+              </p>
               <p>duration {snapshot.before.avgDurationMs}ms</p>
               <p className="text-xs text-muted">n={snapshot.before.sampleSize}</p>
             </div>
             <div className="rounded border border-border p-3">
               <p className="text-xs text-muted">After (measured)</p>
               <p>avg calls {snapshot.after.avgCalls}</p>
-              <p>completion {round(snapshot.after.completionRate * 100, 1)}%</p>
+              <p>
+                completion{" "}
+                {snapshot.after.completionRate === null
+                  ? "Not measured"
+                  : `${round(snapshot.after.completionRate * 100, 1)}%`}
+              </p>
               <p>duration {snapshot.after.avgDurationMs}ms</p>
               <p className="text-xs text-muted">n={snapshot.after.sampleSize}</p>
             </div>

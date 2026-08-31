@@ -113,7 +113,7 @@ describe("Cut 4 dashboard polish", () => {
     expect(
       await screen.findByRole("img", { name: /Agent sessions: 3 points/ }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: /Successful journeys: 3 points/ })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /Task completions: 3 points/ })).toBeInTheDocument();
   });
 
   it("saves an edited inactivity timeout", async () => {

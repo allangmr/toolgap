@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLiveQuery } from "dexie-react-hooks";
 import { WebmcpStatusBadge } from "./WebmcpStatusBadge";
 import { useAnalysisStatus } from "@/components/providers/AnalysisStatusProvider";
 import { Button } from "@/components/ui";
+import { formatAnalysisStatus } from "@/lib/analysis/status-copy";
+import { frictionRepo, journeyRepo } from "@/lib/db/repositories";
 
 const NAV = [
   { href: "/overview", label: "Overview" },
@@ -20,6 +23,14 @@ const NAV = [
 export function DashboardSidebar() {
   const pathname = usePathname();
   const analysis = useAnalysisStatus();
+  const storedJourneys = useLiveQuery(() => journeyRepo.all(), []) ?? [];
+  const storedSignals = useLiveQuery(() => frictionRepo.all(), []) ?? [];
+  const status = formatAnalysisStatus({
+    result: analysis.lastResult,
+    storedJourneys: storedJourneys.length,
+    storedSignals: storedSignals.length,
+    error: analysis.error,
+  });
 
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-surface">
@@ -64,13 +75,10 @@ export function DashboardSidebar() {
         >
           {analysis.pending ? "Analyzing…" : "Run analysis"}
         </Button>
-        <p className="mt-2 text-xs text-muted" aria-live="polite">
-          {analysis.error
-            ? `Error: ${analysis.error}`
-            : analysis.lastResult
-              ? `Last run: ${analysis.lastResult.journeysBuilt} journeys, ${analysis.lastResult.signalsCreated} signals`
-              : "No analysis yet"}
-        </p>
+        <div className="mt-2 space-y-0.5 text-xs text-muted" aria-live="polite">
+          <p>{status.primary}</p>
+          {status.secondary ? <p>{status.secondary}</p> : null}
+        </div>
         <Link
           href="/store"
           className="mt-3 block text-center text-xs font-medium text-accent hover:underline"
