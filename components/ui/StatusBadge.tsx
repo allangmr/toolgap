@@ -6,9 +6,11 @@ const STATUS_MAP: Record<
 > = {
   active: { label: "Active", tone: "success", icon: "●" },
   completed: { label: "Completed", tone: "accent", icon: "✓" },
-  expired: { label: "Expired", tone: "neutral", icon: "○" },
+  expired: { label: "Settled", tone: "neutral", icon: "○" },
   failed: { label: "Failed", tone: "danger", icon: "✕" },
-  abandoned: { label: "Abandoned", tone: "warning", icon: "…" },
+  unknown: { label: "Not measured", tone: "neutral", icon: "?" },
+  abandoned: { label: "Not measured", tone: "neutral", icon: "?" },
+  in_progress: { label: "In progress", tone: "info", icon: "…" },
   detected: { label: "Detected", tone: "info", icon: "!" },
   recommendation_ready: { label: "Ready", tone: "accent", icon: "→" },
   simulated: { label: "Simulated", tone: "info", icon: "≈" },

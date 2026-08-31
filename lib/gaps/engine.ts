@@ -146,10 +146,9 @@ export function mergeSignalsIntoGaps(
         ? mean(supportingJourneys.map((j) => j.callCount))
         : (existing?.currentAvgCallCount ?? 0);
     const settled = supportingJourneys.filter(isSettled);
-    const completionRate =
-      settled.length > 0
-        ? journeyCompletionRate(settled)
-        : (existing?.currentCompletionRate ?? 0);
+    const measuredRate = settled.length > 0 ? journeyCompletionRate(settled) : null;
+    const completionRateValue =
+      measuredRate ?? (existing?.currentCompletionRate ?? null);
 
     const avgWasted = mean(keySignals.map((s) => s.wastedCallsEstimate));
     const severityScore =
@@ -186,7 +185,8 @@ export function mergeSignalsIntoGaps(
           affectedSessions: sessionIds.size,
           percentageOfRelevantJourneys: round(percentage, 3),
           currentAvgCallCount: round(avgCalls, 2),
-          currentCompletionRate: round(completionRate, 3),
+          currentCompletionRate:
+            completionRateValue === null ? null : round(completionRateValue, 3),
           signalIds: [...allSignalIds],
           lastDetectedAt: now,
           detectedIntent: relevantIntent,
@@ -225,7 +225,8 @@ export function mergeSignalsIntoGaps(
           affectedSessions: sessionIds.size,
           percentageOfRelevantJourneys: round(percentage, 3),
           currentAvgCallCount: round(avgCalls, 2),
-          currentCompletionRate: round(completionRate, 3),
+          currentCompletionRate:
+            completionRateValue === null ? null : round(completionRateValue, 3),
           signalIds: [...allSignalIds],
           mergeKey,
           firstDetectedAt: now,

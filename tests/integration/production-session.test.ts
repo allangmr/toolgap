@@ -12,7 +12,7 @@ import {
 import { runAnalysis } from "@/lib/analysis/pipeline";
 import { buildRecommendation } from "@/lib/recommendations/builder";
 import { transitionGap } from "@/lib/gaps/engine";
-import { completionRate } from "@/lib/journeys/reconstruct";
+import { completionRate, formatJourneyOutcome } from "@/lib/journeys/reconstruct";
 import {
   clearMemoryForTests,
   nextCallContext,
@@ -134,7 +134,7 @@ describe("production-shaped session reaches analysis", () => {
     expect(journey.outcome).not.toBe("abandoned");
 
     // An unsettled snapshot must not drag completion metrics toward zero.
-    expect(completionRate([journey])).toBe(0);
+    expect(completionRate([journey])).toBeNull();
     expect(completionRate([journey, { outcome: "completed" }])).toBe(1);
   });
 
@@ -151,7 +151,8 @@ describe("production-shaped session reaches analysis", () => {
     expect(journeys).toHaveLength(1);
     expect(journeys[0]!.id).toBe(provisional.id);
     expect(journeys[0]!.state).toBe("final");
-    expect(journeys[0]!.outcome).toBe("abandoned");
+    expect(journeys[0]!.outcome).toBe("unknown");
+    expect(formatJourneyOutcome(journeys[0]!.outcome)).toBe("Not measured");
 
     const session = await sessionRepo.get(provisional.sessionId);
     expect(session!.status).toBe("expired");
@@ -363,8 +364,8 @@ describe("gap evidence stays consistent across refreshes", () => {
     expect(journeys.every((j) => j.state === "provisional")).toBe(true);
     // No supporting journey has settled, so the rate is not asserted as 0%
     // drop-off from unsettled evidence.
-    expect(gap.currentCompletionRate).toBe(0);
-    expect(completionRate(journeys)).toBe(0);
+    expect(gap.currentCompletionRate).toBeNull();
+    expect(completionRate(journeys)).toBeNull();
   });
 });
 
