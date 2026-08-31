@@ -4,6 +4,7 @@ import type {
   InferredIntent,
   Journey,
   JourneyOutcome,
+  JourneyState,
   JourneyStep,
   ToolCallEvent,
 } from "@/lib/shared/types";
@@ -11,8 +12,10 @@ import type {
 export function buildJourneyFromEvents(
   sessionId: string,
   events: ToolCallEvent[],
+  options: { state?: JourneyState } = {},
 ): Journey | null {
   if (events.length === 0) return null;
+  const state = options.state ?? "final";
 
   const sorted = [...events].sort((a, b) => a.sequenceIndex - b.sequenceIndex);
   const steps: JourneyStep[] = [];
@@ -37,7 +40,8 @@ export function buildJourneyFromEvents(
   const signature = buildSignature(steps);
   const startedAt = sorted[0]!.timestamp;
   const endedAt = sorted[sorted.length - 1]!.timestamp + sorted[sorted.length - 1]!.durationMs;
-  const outcome = classifyOutcome(steps);
+  const lastEventSeq = sorted[sorted.length - 1]!.sequenceIndex;
+  const outcome = classifyOutcome(steps, state);
   const inferredIntent = inferIntent(steps, signature);
   const repeatedToolCounts: Record<string, number> = {};
   for (const [tool, count] of toolRunCounts) {
@@ -64,6 +68,8 @@ export function buildJourneyFromEvents(
     endedAt,
     durationMs: Math.max(0, endedAt - startedAt),
     callCount: steps.length,
+    state,
+    lastEventSeq,
     outcome,
     inferredIntent,
     frictionScore: 0,
@@ -91,7 +97,20 @@ export function buildSignature(steps: JourneyStep[]): string {
   return parts.join(">");
 }
 
-function classifyOutcome(steps: JourneyStep[]): JourneyOutcome {
+function classifyOutcome(steps: JourneyStep[], state: JourneyState): JourneyOutcome {
+  const settled = classifySettledOutcome(steps);
+  if (state === "final") return settled;
+
+  // The session is still open, so only verdicts the calls already prove can
+  // stand. Anything else is in progress, never abandoned.
+  if (settled === "failed") return "failed";
+  if (steps.some((s) => s.toolName === "complete_checkout" && s.success)) {
+    return "completed";
+  }
+  return "in_progress";
+}
+
+function classifySettledOutcome(steps: JourneyStep[]): JourneyOutcome {
   if (steps.length === 0) return "abandoned";
   const last = steps[steps.length - 1]!;
   if (!last.success) return "failed";
@@ -109,6 +128,20 @@ function classifyOutcome(steps: JourneyStep[]): JourneyOutcome {
   const failures = steps.filter((s) => !s.success);
   if (failures.length >= 3) return "failed";
   return "abandoned";
+}
+
+/**
+ * A journey counts toward completion and drop-off rates only once its outcome
+ * is settled. Provisional snapshots would otherwise read as drop-offs.
+ */
+export function isSettled(journey: Pick<Journey, "outcome">): boolean {
+  return journey.outcome !== "in_progress";
+}
+
+export function completionRate(journeys: Array<Pick<Journey, "outcome">>): number {
+  const settled = journeys.filter(isSettled);
+  if (settled.length === 0) return 0;
+  return settled.filter((j) => j.outcome === "completed").length / settled.length;
 }
 
 export function inferIntent(steps: JourneyStep[], signature: string): InferredIntent {
@@ -149,7 +182,6 @@ export function groupJourneyPatterns(
 
   return [...map.entries()]
     .map(([signature, list]) => {
-      const completed = list.filter((j) => j.outcome === "completed").length;
       const intentCounts = new Map<InferredIntent, number>();
       for (const j of list) {
         intentCounts.set(j.inferredIntent, (intentCounts.get(j.inferredIntent) ?? 0) + 1);
@@ -167,7 +199,7 @@ export function groupJourneyPatterns(
         journeyCount: list.length,
         avgCalls: list.reduce((s, j) => s + j.callCount, 0) / list.length,
         avgDurationMs: list.reduce((s, j) => s + j.durationMs, 0) / list.length,
-        completionRate: list.length === 0 ? 0 : completed / list.length,
+        completionRate: completionRate(list),
         inferredIntent,
         journeyIds: list.map((j) => j.id),
       };

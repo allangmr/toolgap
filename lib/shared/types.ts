@@ -10,7 +10,13 @@ export type ErrorCategory =
 
 export type SessionStatus = "active" | "completed" | "expired";
 
-export type JourneyOutcome = "completed" | "abandoned" | "failed";
+export type JourneyOutcome = "completed" | "abandoned" | "failed" | "in_progress";
+
+/**
+ * A journey rebuilt from a session that is still active is a snapshot, not a
+ * verdict. It stays `provisional` until the session is finalized.
+ */
+export type JourneyState = "provisional" | "final";
 export type InferredIntent =
   | "purchase"
   | "comparison"
@@ -120,6 +126,9 @@ export interface Journey {
   endedAt: number;
   durationMs: number;
   callCount: number;
+  state: JourneyState;
+  /** Highest sequenceIndex folded into this journey. */
+  lastEventSeq: number;
   outcome: JourneyOutcome;
   /** Inferred — not an observed fact. */
   inferredIntent: InferredIntent;

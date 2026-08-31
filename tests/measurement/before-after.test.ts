@@ -19,6 +19,8 @@ function journey(
     endedAt: startedAt + 10,
     durationMs: 10,
     callCount: intent === "purchase" ? 3 : 6,
+    state: "final",
+    lastEventSeq: intent === "purchase" ? 3 : 6,
     outcome: "abandoned",
     inferredIntent: intent,
     frictionScore: 1,

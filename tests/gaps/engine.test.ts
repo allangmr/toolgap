@@ -12,6 +12,8 @@ function journey(id: string, sessionId: string): Journey {
     endedAt: 10,
     durationMs: 9,
     callCount: 4,
+    state: "final",
+    lastEventSeq: 4,
     outcome: "abandoned",
     inferredIntent: "comparison",
     frictionScore: 2,

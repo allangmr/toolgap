@@ -74,6 +74,8 @@ function journeyStub(i: number): Journey {
     endedAt: 1_100 + i,
     durationMs: 100,
     callCount: i + 1,
+    state: "final",
+    lastEventSeq: i + 1,
     outcome: i % 2 === 0 ? "completed" : "abandoned",
     inferredIntent: "lookup",
     frictionScore: i % 2,

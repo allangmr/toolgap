@@ -107,15 +107,6 @@ export default function SettingsPage() {
                   params: { productId: SEED_PRODUCTS[1]!.id },
                 },
               ]);
-              // finalize by resetting sessionizer timeout path via analysis after marking
-              const { sessionRepo } = await import("@/lib/db/repositories");
-              const sessions = await sessionRepo.active();
-              for (const s of sessions) {
-                s.status = "expired";
-                s.endedAt = s.lastActivityAt;
-                await sessionRepo.upsert(s);
-              }
-              resetSessionizer();
               await analysis.refresh();
             })
           }

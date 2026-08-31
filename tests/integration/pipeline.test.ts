@@ -206,6 +206,8 @@ describe("gap engine thresholds", () => {
       endedAt: 2,
       durationMs: 1,
       callCount: 6,
+      state: "final" as const,
+      lastEventSeq: 6,
       outcome: "abandoned" as const,
       inferredIntent: "comparison" as const,
       frictionScore: 3,

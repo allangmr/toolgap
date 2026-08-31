@@ -147,6 +147,10 @@ export const frictionRepo = {
   async byJourney(journeyId: string): Promise<FrictionSignal[]> {
     return getDb().frictionSignals.where("journeyId").equals(journeyId).toArray();
   },
+  async deleteByJourneys(journeyIds: string[]): Promise<void> {
+    if (journeyIds.length === 0) return;
+    await getDb().frictionSignals.where("journeyId").anyOf(journeyIds).delete();
+  },
   async clear(): Promise<void> {
     await getDb().frictionSignals.clear();
   },

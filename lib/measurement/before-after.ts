@@ -1,4 +1,5 @@
 import { createId, mean, nowMs, round } from "@/lib/shared";
+import { completionRate } from "@/lib/journeys/reconstruct";
 import type {
   InferredIntent,
   Journey,
@@ -53,12 +54,7 @@ export function computeBeforeAfter(args: {
 
   const summarize = (list: Journey[]) => ({
     avgCalls: round(mean(list.map((j) => j.callCount)), 2),
-    completionRate: round(
-      list.length === 0
-        ? 0
-        : list.filter((j) => j.outcome === "completed").length / list.length,
-      3,
-    ),
+    completionRate: round(completionRate(list), 3),
     avgDurationMs: round(mean(list.map((j) => j.durationMs)), 1),
     sampleSize: list.length,
     source: "measured" as const,
