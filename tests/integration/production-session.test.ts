@@ -333,7 +333,9 @@ describe("gap evidence stays consistent across refreshes", () => {
     await runAnalysis();
 
     const gap = (await gapRepo.all()).find((g) => g.type === "COMPARE")!;
-    const rec = buildRecommendation(gap)!;
+    const built = buildRecommendation(gap);
+    if (!built.ok) throw new Error("expected a COMPARE recommendation");
+    const rec = built.recommendation;
     await recommendationRepo.put(rec);
     await gapRepo.put({
       ...transitionGap(gap, "approved", "human"),
