@@ -200,6 +200,12 @@ export const simulationRepo = {
   ): Promise<RecommendationSimulation | undefined> {
     return getDb().simulations.where("recommendationId").equals(recommendationId).first();
   },
+  async deleteByRecommendation(recommendationId: string): Promise<void> {
+    await getDb()
+      .simulations.where("recommendationId")
+      .equals(recommendationId)
+      .delete();
+  },
   async clear(): Promise<void> {
     await getDb().simulations.clear();
   },

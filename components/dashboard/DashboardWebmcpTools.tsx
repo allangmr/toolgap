@@ -173,11 +173,18 @@ export function DashboardWebmcpTools() {
             const gap = await gapRepo.get(params.gapId as string);
             if (!gap) throw Object.assign(new Error("Gap not found"), { category: "not_found" });
             const published = await publishedRepo.all();
-            const rec = buildRecommendation(gap, {
+            const result = buildRecommendation(gap, {
               takenToolNames: published.map((p) => p.toolName),
               createdBy: "agent",
             });
-            if (!rec) throw new Error("No template for this gap type");
+            if (!result.ok) {
+              throw new Error(
+                result.reason === "no_template"
+                  ? "No template for this gap type"
+                  : result.issues.join(" "),
+              );
+            }
+            const rec = result.recommendation;
             const existing = await recommendationRepo.byGap(gap.id);
             if (existing) {
               rec.id = existing.id;
