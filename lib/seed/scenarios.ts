@@ -14,10 +14,11 @@ import { driveSequence } from "@/lib/webmcp/driver";
 import { getRegistry } from "@/lib/webmcp/registry";
 import { registerStaticStoreTools } from "@/lib/webmcp/store-tools";
 import { registerPublishedCapability } from "@/lib/publishing/publish";
+import { currentPageSurface } from "@/lib/webmcp/surface";
 
 const p = SEED_PRODUCTS;
 
-async function ensureSeedRuntime(): Promise<void> {
+export async function ensureSeedRuntime(): Promise<void> {
   await ensureCatalogSeeded();
   const registry = getRegistry();
   await registry.whenReady();
@@ -158,11 +159,20 @@ export async function seedPostPublishTraffic(capabilityId?: string): Promise<{
   }
   const registry = getRegistry();
   await registry.whenReady();
-  if (!registry.has(cap.toolName)) {
-    await registerPublishedCapability(cap);
+  // Seeding drives the tool in this tab, so register it temporarily even on
+  // the dashboard — then remove it so store tools stay off dashboard WebMCP.
+  const temporarilyRegistered = !registry.has(cap.toolName);
+  if (temporarilyRegistered) {
+    await registerPublishedCapability(cap, { force: true });
   }
-  for (let i = 0; i < 6; i++) {
-    await driveScenario(postPublishSteps(cap));
+  try {
+    for (let i = 0; i < 6; i++) {
+      await driveScenario(postPublishSteps(cap));
+    }
+  } finally {
+    if (temporarilyRegistered && currentPageSurface() !== "store") {
+      registry.unregisterTool(cap.toolName);
+    }
   }
   const settings = await settingsRepo.get();
   await settingsRepo.put({ ...settings, seededAt: nowMs() });

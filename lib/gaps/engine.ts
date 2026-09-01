@@ -176,9 +176,27 @@ export function mergeSignalsIntoGaps(
       // Update counts but keep
     }
 
+    // Fresh evidence observed after the gap was flagged as pre-publish residue
+    // means agents still hit this friction with the new capability live. Use
+    // the journey's own timeline, not signal.detectedAt: re-analysis re-derives
+    // signals from old journeys with a new detectedAt, which is not new
+    // agent behavior.
+    const latestEvidenceAt = Math.max(
+      ...keySignals.map(
+        (s) => journeyById.get(s.journeyId)?.endedAt ?? s.detectedAt,
+      ),
+    );
+    const staleCleared =
+      existing?.staleEvidenceAt != null &&
+      latestEvidenceAt > existing.staleEvidenceAt;
+
     const gap: CapabilityGap = existing
       ? {
           ...existing,
+          staleEvidenceCapabilityId: staleCleared
+            ? undefined
+            : existing.staleEvidenceCapabilityId,
+          staleEvidenceAt: staleCleared ? undefined : existing.staleEvidenceAt,
           confidence: round(confidence, 3),
           severity,
           supportingSessionIds: [...sessionIds],

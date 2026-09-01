@@ -7,12 +7,15 @@ import {
 import { transitionGap } from "@/lib/gaps/engine";
 import { createId, nowMs } from "@/lib/shared";
 import type {
+  CapabilityGap,
   PublishedCapability,
   Recommendation,
 } from "@/lib/shared/types";
 import { storeServices } from "@/lib/store-domain/services";
 import { getTemplate } from "@/lib/recommendations/templates";
 import { getRegistry } from "@/lib/webmcp/registry";
+import { storeToolDefinitions } from "@/lib/webmcp/store-tools";
+import { currentPageSurface } from "@/lib/webmcp/surface";
 
 export async function approveRecommendation(
   recommendationId: string,
@@ -46,15 +49,17 @@ export async function publishRecommendation(
     throw new Error(`Tool name already published: ${rec.proposedToolName}`);
   }
 
-  const registry = getRegistry();
-  if (registry.has(rec.proposedToolName)) {
-    // Static tool conflict
-    const staticNames = new Set(
-      registry.listTools().filter((t) => t.origin === "static").map((t) => t.name),
-    );
-    if (staticNames.has(rec.proposedToolName)) {
-      throw new Error(`Conflicts with static tool: ${rec.proposedToolName}`);
-    }
+  // Check the canonical static store tool list, not the local registry: the
+  // dashboard tab (where publishing happens) never registers store tools.
+  const staticNames = new Set([
+    ...storeToolDefinitions.map((t) => t.name),
+    ...getRegistry()
+      .listTools()
+      .filter((t) => t.origin === "static")
+      .map((t) => t.name),
+  ]);
+  if (staticNames.has(rec.proposedToolName)) {
+    throw new Error(`Conflicts with static tool: ${rec.proposedToolName}`);
   }
 
   const template = getTemplate(rec.templateType);
@@ -118,13 +123,53 @@ export async function publishRecommendation(
         "system",
       ),
     );
+    await markResidualGapsStale(gap, capability.id);
   }
 
   return capability;
 }
 
+/**
+ * Open sibling gaps whose evidence comes entirely from the sessions that just
+ * got a capability published are workaround residue (e.g. FILTER/BULK_READ
+ * detected from the same pre-publish `get_product` loops). Flag them so the
+ * UI can down-rank instead of presenting them as current agent pain.
+ */
+async function markResidualGapsStale(
+  resolvedGap: CapabilityGap,
+  capabilityId: string,
+): Promise<void> {
+  const resolvedSessions = new Set(resolvedGap.supportingSessionIds);
+  if (resolvedSessions.size === 0) return;
+  const openStatuses = new Set<CapabilityGap["status"]>([
+    "detected",
+    "recommendation_ready",
+    "simulated",
+  ]);
+  const gaps = await gapRepo.all();
+  const now = nowMs();
+  for (const other of gaps) {
+    if (other.id === resolvedGap.id) continue;
+    if (!openStatuses.has(other.status)) continue;
+    if (other.staleEvidenceCapabilityId) continue;
+    if (other.supportingSessionIds.length === 0) continue;
+    if (!other.supportingSessionIds.every((s) => resolvedSessions.has(s))) {
+      continue;
+    }
+    await gapRepo.put({
+      ...other,
+      staleEvidenceCapabilityId: capabilityId,
+      staleEvidenceAt: now,
+    });
+  }
+}
+
 export async function registerPublishedCapability(
   capability: PublishedCapability,
+  options?: {
+    /** Register even off the store surface (seed/demo drivers only). */
+    force?: boolean;
+  },
 ): Promise<void> {
   const registry = getRegistry();
   await registry.whenReady();
@@ -136,6 +181,11 @@ export async function registerPublishedCapability(
   if (!parsed.success) {
     throw new Error("Stale capability config failed validation");
   }
+
+  // Store-surface capabilities are only exposed on store tabs. Publishing
+  // happens on the dashboard; store tabs pick the tool up via
+  // DynamicCapabilityLoader / syncActiveCapabilities.
+  if (!options?.force && currentPageSurface() !== "store") return;
 
   if (registry.has(capability.toolName)) {
     registry.unregisterTool(capability.toolName);
@@ -182,6 +232,10 @@ export async function deactivateCapability(id: string): Promise<PublishedCapabil
 }
 
 export async function syncActiveCapabilities(): Promise<void> {
+  // Only store tabs register store dynamic tools; the registry and
+  // modelContext are shared per tab, so syncing on the dashboard would leak
+  // store tools into the dashboard's WebMCP list.
+  if (currentPageSurface() !== "store") return;
   const active = await publishedRepo.active();
   for (const cap of active) {
     try {

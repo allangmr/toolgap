@@ -3,7 +3,11 @@ import "fake-indexeddb/auto";
 import { resetDbForTests } from "@/lib/db/schema";
 import { gapRepo, recommendationRepo } from "@/lib/db/repositories";
 import { buildRecommendation } from "@/lib/recommendations/builder";
-import { approveRecommendation, publishRecommendation } from "@/lib/publishing/publish";
+import {
+  approveRecommendation,
+  publishRecommendation,
+  syncActiveCapabilities,
+} from "@/lib/publishing/publish";
 import { createNoopAdapter } from "@/lib/webmcp/adapter";
 import { getRegistry, resetRegistryForTests } from "@/lib/webmcp/registry";
 import { ensureCatalogSeeded } from "@/lib/store-domain/services";
@@ -45,6 +49,8 @@ describe("an edited config reaches the published WebMCP tool", () => {
     registry.setAdapterForTests(createNoopAdapter());
     await ensureCatalogSeeded();
     await gapRepo.put(compareGap());
+    // Publishing happens from the dashboard surface.
+    window.history.replaceState(null, "", "/gaps/g-edit");
   });
 
   it("registers the human description, name, batch cap, and field selection", async () => {
@@ -63,6 +69,12 @@ describe("an edited config reaches the published WebMCP tool", () => {
 
     expect(cap.toolName).toBe("compare_gear");
     expect(cap.config).toMatchObject({ maxBatchSize: 2 });
+
+    // The dashboard tab must not expose the store tool; a store tab picks it
+    // up when it syncs active capabilities.
+    expect(getRegistry().has("compare_gear")).toBe(false);
+    window.history.replaceState(null, "", "/store");
+    await syncActiveCapabilities();
 
     const registered = getRegistry()
       .listTools()

@@ -124,10 +124,28 @@ describe("Cut 2 status surfaces", () => {
     });
   });
 
-  it("restores published tools when DbBootstrap finishes", async () => {
+  it("restores published tools on store tabs when DbBootstrap finishes", async () => {
     await ensureCatalogSeeded();
     await publishedRepo.put(cap);
+    window.history.replaceState(null, "", "/store");
     expect(getRegistry().has("compare_products")).toBe(false);
+
+    render(
+      <DbBootstrap>
+        <p>store ready</p>
+      </DbBootstrap>,
+    );
+
+    expect(await screen.findByText("store ready")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(getRegistry().has("compare_products")).toBe(true);
+    });
+  });
+
+  it("keeps store dynamic tools off the dashboard tab", async () => {
+    await ensureCatalogSeeded();
+    await publishedRepo.put(cap);
+    window.history.replaceState(null, "", "/published");
 
     render(
       <AnalysisStatusProvider>
@@ -137,7 +155,9 @@ describe("Cut 2 status surfaces", () => {
       </AnalysisStatusProvider>,
     );
 
-    expect(await screen.findByText("Live in this tab")).toBeInTheDocument();
-    expect(getRegistry().has("compare_products")).toBe(true);
+    expect(
+      await screen.findByText(/not exposed on this dashboard tab/i),
+    ).toBeInTheDocument();
+    expect(getRegistry().has("compare_products")).toBe(false);
   });
 });

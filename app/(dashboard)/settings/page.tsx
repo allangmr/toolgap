@@ -10,7 +10,11 @@ import {
 } from "@/lib/db/repositories";
 import { exportDump, importDump } from "@/lib/db/dump";
 import { rebuildDerivedData } from "@/lib/analysis/pipeline";
-import { seedAllScenarios, seedPostPublishTraffic } from "@/lib/seed/scenarios";
+import {
+  ensureSeedRuntime,
+  seedAllScenarios,
+  seedPostPublishTraffic,
+} from "@/lib/seed/scenarios";
 import { Button, Dialog } from "@/components/ui";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useAnalysisStatus } from "@/components/providers/AnalysisStatusProvider";
@@ -93,6 +97,9 @@ export default function SettingsPage() {
           disabled={busy}
           onClick={() =>
             void run("Live driver sequence complete.", async () => {
+              // Register store tools in this tab so the driver has something
+              // to invoke after a full page load on the dashboard.
+              await ensureSeedRuntime();
               resetSessionizer();
               await driveSequence([
                 { tool: "search_products", params: { category: "headphones" } },

@@ -17,6 +17,11 @@ export function GapCard({ gap }: { gap: CapabilityGap }) {
           </p>
         </div>
         <div className="flex gap-2">
+          {gap.staleEvidenceCapabilityId ? (
+            <Badge tone="warning" dashed>
+              Pre-publish evidence
+            </Badge>
+          ) : null}
           {observational ? <Badge tone="neutral">Observational</Badge> : null}
           <StatusBadge status={gap.severity} />
           <StatusBadge status={gap.status} />
