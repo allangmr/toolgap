@@ -196,27 +196,6 @@ textarea::placeholder {
   }
 }
 
-@keyframes compare-beam-travel-y {
-  0% {
-    transform: translateY(-120%);
-  }
-  100% {
-    transform: translateY(120%);
-  }
-}
-
-@media (min-width: 1024px) {
-  .compare-bridge .compare-beam::after {
-    background: linear-gradient(
-      180deg,
-      transparent,
-      rgb(255 250 243 / 0.85),
-      transparent
-    );
-    animation-name: compare-beam-travel-y;
-  }
-}
-
 .compare-scan {
   animation: compare-scan-sweep 2.8s var(--ease-out) infinite;
 }

@@ -168,18 +168,18 @@ function ImpactPill({
 
 function CollapseBridge({ reduce, label }: { reduce: boolean; label: string }) {
   return (
-    <div className="compare-bridge relative flex items-center justify-center self-center py-2 lg:px-2 lg:py-0">
+    <div className="compare-bridge relative flex items-center justify-center self-center py-1 lg:min-h-[12rem] lg:px-1">
       <motion.div
         initial={reduce ? false : { opacity: 0, scale: 0.85 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-        className="flex w-full max-w-sm flex-row items-center gap-3 lg:w-16 lg:max-w-none lg:flex-col lg:gap-2"
+        className="flex w-full flex-col items-center gap-2"
       >
-        <span
-          aria-hidden="true"
-          className="compare-beam h-px flex-1 bg-gradient-to-r from-transparent via-accent/70 to-transparent lg:h-12 lg:w-px lg:flex-none lg:bg-gradient-to-b"
-        />
-        <div className="flex flex-col items-center gap-1.5">
+        <div className="flex w-full items-center gap-2 lg:w-auto lg:min-w-[4.5rem]">
+          <span
+            aria-hidden="true"
+            className="compare-beam h-px flex-1 bg-gradient-to-r from-transparent via-accent/70 to-transparent lg:w-6 lg:flex-none"
+          />
           <motion.span
             aria-hidden="true"
             animate={
@@ -195,7 +195,7 @@ function CollapseBridge({ reduce, label }: { reduce: boolean; label: string }) {
                   }
             }
             transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-accent/40 bg-accent text-accent-ink"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent text-accent-ink"
           >
             <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true">
               <path
@@ -207,14 +207,14 @@ function CollapseBridge({ reduce, label }: { reduce: boolean; label: string }) {
               />
             </svg>
           </motion.span>
-          <span className="max-w-[5.5rem] text-center font-mono text-[10px] leading-tight tracking-[0.14em] text-accent uppercase">
-            {label}
-          </span>
+          <span
+            aria-hidden="true"
+            className="compare-beam h-px flex-1 bg-gradient-to-r from-transparent via-accent/70 to-transparent lg:w-6 lg:flex-none"
+          />
         </div>
-        <span
-          aria-hidden="true"
-          className="compare-beam h-px flex-1 bg-gradient-to-r from-transparent via-accent/70 to-transparent lg:h-12 lg:w-px lg:flex-none lg:bg-gradient-to-b"
-        />
+        <span className="text-center font-mono text-[10px] tracking-[0.14em] text-accent uppercase">
+          {label}
+        </span>
       </motion.div>
     </div>
   );
