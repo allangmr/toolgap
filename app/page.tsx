@@ -73,7 +73,7 @@ export default function HomePage() {
               </Button>
               <Link
                 href="/store"
-                className="text-sm text-muted underline-offset-4 hover:text-foreground hover:underline"
+                className="text-sm text-muted underline underline-offset-4 hover:text-foreground"
               >
                 Open demo store
               </Link>
