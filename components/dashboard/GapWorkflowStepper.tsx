@@ -19,8 +19,11 @@ export function GapWorkflowStepper({
   onStepChange: (step: WorkflowStep) => void;
 }) {
   return (
-    <nav aria-label="Gap workflow" className="w-full">
-      <ol className="flex flex-col gap-2 md:flex-row md:items-center md:gap-0">
+    <nav
+      aria-label="Gap workflow"
+      className="rounded-2xl border border-border bg-surface px-3 py-3 shadow-[var(--shadow-card)] md:px-4"
+    >
+      <ol className="flex flex-col gap-1 md:flex-row md:items-center md:gap-0">
         {WORKFLOW_STEPS.map((step, index) => {
           const state = stepStates[step];
           const selected = step === activeStep;
@@ -34,7 +37,7 @@ export function GapWorkflowStepper({
                 aria-current={selected ? "step" : undefined}
                 onClick={() => onStepChange(step)}
                 className={cn(
-                  "flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-sm font-medium transition-colors md:px-3",
+                  "flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2.5 text-left text-[15px] font-medium transition-colors md:px-3",
                   selected && "bg-accent-subtle text-accent",
                   !selected && state === "complete" && "text-success hover:bg-surface-muted",
                   !selected &&
@@ -45,9 +48,11 @@ export function GapWorkflowStepper({
               >
                 <span
                   className={cn(
-                    "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border font-mono text-[11px]",
+                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[12px] font-semibold",
                     selected && "border-accent bg-accent text-accent-ink",
-                    !selected && state === "complete" && "border-success bg-success-subtle text-success",
+                    !selected &&
+                      state === "complete" &&
+                      "border-success bg-success-subtle text-success",
                     !selected &&
                       state !== "complete" &&
                       "border-border bg-surface text-muted",
@@ -61,7 +66,7 @@ export function GapWorkflowStepper({
               {index < WORKFLOW_STEPS.length - 1 ? (
                 <Separator
                   orientation="horizontal"
-                  className="mx-2 hidden flex-1 md:block"
+                  className="mx-1 hidden flex-1 md:block"
                   decorative
                 />
               ) : null}

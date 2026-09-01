@@ -39,6 +39,8 @@ import {
   parseWorkflowStepParam,
   resolveWorkflowStep,
   stepState,
+  workflowStepHeadline,
+  workflowStepNumber,
   type WorkflowStep,
 } from "@/lib/gaps/workflow-steps";
 import { approveRecommendation, publishRecommendation } from "@/lib/publishing/publish";
@@ -347,9 +349,13 @@ export default function GapDetailClient({ id }: { id: string }) {
         <Link href="/gaps" className="text-sm text-accent hover:underline">
           ← Capability gaps
         </Link>
-        <h1 className="mt-3 font-display text-3xl font-medium tracking-tight md:text-4xl">
-          {gap.title}
+        <p className="mt-5 inline-flex items-center rounded-lg border border-accent/45 bg-accent-subtle px-2.5 py-1 font-mono text-[11px] font-semibold tracking-[0.16em] text-accent uppercase">
+          Step {workflowStepNumber(activeStep)}
+        </p>
+        <h1 className="mt-3 font-display text-4xl font-medium tracking-tight md:text-5xl">
+          {workflowStepHeadline(activeStep)}
         </h1>
+        <p className="mt-2 text-base text-muted">{gap.title}</p>
         <div className="mt-3 flex flex-wrap gap-2">
           <StatusBadge status={gap.status} />
           <StatusBadge status={gap.severity} />
@@ -372,7 +378,7 @@ export default function GapDetailClient({ id }: { id: string }) {
         ) : null}
       </div>
 
-      <div className="grid gap-6 rounded-md border border-accent/30 bg-accent-subtle/40 p-5 md:grid-cols-3">
+      <div className="grid gap-6 rounded-2xl border border-accent/30 bg-accent-subtle/40 p-6 md:grid-cols-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-wider text-muted">
             What agents are trying to do
@@ -413,13 +419,13 @@ export default function GapDetailClient({ id }: { id: string }) {
       />
 
       <div
-        className="flex flex-wrap items-center gap-2"
+        className="flex flex-wrap items-center gap-3"
         role="group"
         aria-label="Workflow action"
       >
         {renderPrimaryAction()}
         {gap.status !== "dismissed" && !isResolved ? (
-          <Button variant="ghost" onClick={() => setDismissOpen(true)} disabled={busy}>
+          <Button variant="ghost" size="md" onClick={() => setDismissOpen(true)} disabled={busy}>
             Dismiss…
           </Button>
         ) : null}

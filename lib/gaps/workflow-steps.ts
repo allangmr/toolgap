@@ -32,6 +32,14 @@ const STEP_LABELS: Record<WorkflowStep, string> = {
   publish: "Publish",
 };
 
+const STEP_HEADLINES: Record<WorkflowStep, string> = {
+  evidence: "You review the evidence",
+  propose: "You shape the capability",
+  compare: "You compare the journeys",
+  approve: "You approve the fix",
+  publish: "You publish the fix",
+};
+
 const LEGACY_TAB_TO_STEP: Record<string, WorkflowStep> = {
   evidence: "evidence",
   recommendation: "propose",
@@ -40,6 +48,14 @@ const LEGACY_TAB_TO_STEP: Record<string, WorkflowStep> = {
 
 export function workflowStepLabel(step: WorkflowStep): string {
   return STEP_LABELS[step];
+}
+
+export function workflowStepNumber(step: WorkflowStep): number {
+  return WORKFLOW_STEPS.indexOf(step) + 1;
+}
+
+export function workflowStepHeadline(step: WorkflowStep): string {
+  return STEP_HEADLINES[step];
 }
 
 export function parseWorkflowStepParam(
