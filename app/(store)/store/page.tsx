@@ -47,7 +47,7 @@ export default function StoreCatalogPage() {
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at 20% 20%, rgb(180 83 9 / 0.14), transparent 40%), radial-gradient(circle at 80% 0%, rgb(255 255 255 / 0.75), transparent 35%)",
+              "radial-gradient(circle at 20% 20%, rgb(154 52 18 / 0.14), transparent 40%), radial-gradient(circle at 80% 0%, rgb(255 255 255 / 0.75), transparent 35%)",
           }}
         />
         <div className="relative max-w-xl">
