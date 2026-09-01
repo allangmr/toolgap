@@ -11,11 +11,14 @@ export function formatDuration(ms: number): string {
 }
 
 export function formatTimestamp(ms: number): string {
+  // Include the timezone: a bare wall-clock time is ambiguous when the
+  // browser runs in UTC (e.g. hosted verifier sessions).
   return new Date(ms).toLocaleString(undefined, {
     month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
+    timeZoneName: "short",
   });
 }

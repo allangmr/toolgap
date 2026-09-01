@@ -38,9 +38,16 @@ export default function RecommendationsPage() {
                 <StatusBadge status={r.status} />
               </Td>
               <Td>
-                <Badge tone={r.createdBy === "agent" ? "info" : "neutral"}>
-                  {r.createdBy}
-                </Badge>
+                <div className="flex flex-wrap gap-1">
+                  <Badge tone={r.createdBy === "agent" ? "info" : "neutral"}>
+                    {r.createdBy}
+                  </Badge>
+                  {r.lastEditedBy && r.lastEditedBy !== r.createdBy ? (
+                    <Badge tone="neutral" dashed>
+                      edited by {r.lastEditedBy}
+                    </Badge>
+                  ) : null}
+                </div>
               </Td>
               <Td className="font-mono text-xs">{formatTimestamp(r.updatedAt)}</Td>
               <Td>

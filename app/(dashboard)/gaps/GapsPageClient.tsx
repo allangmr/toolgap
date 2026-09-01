@@ -27,7 +27,11 @@ export default function GapsPageClient() {
       const sev = { high: 3, medium: 2, low: 1 };
       const actionable = (type: (typeof a)["type"]) =>
         templateForGapType(type) === null ? 0 : 1;
+      // Gaps whose evidence entirely predates a published capability are
+      // workaround residue — rank them below gaps with current evidence.
+      const fresh = (g: typeof a) => (g.staleEvidenceCapabilityId ? 0 : 1);
       return (
+        fresh(b) - fresh(a) ||
         actionable(b.type) - actionable(a.type) ||
         sev[b.severity] - sev[a.severity] ||
         b.confidence - a.confidence

@@ -200,6 +200,13 @@ export interface CapabilityGap {
   dismissedUntil?: number;
   resolvedAt?: number;
   resolvedByCapabilityId?: string;
+  /**
+   * Set when every supporting session predates a published capability that
+   * resolved the same workaround pattern. Cleared automatically when fresh
+   * post-publish evidence arrives.
+   */
+  staleEvidenceCapabilityId?: string;
+  staleEvidenceAt?: number;
 }
 
 export interface EstimatedBenefit {
@@ -221,6 +228,8 @@ export interface Recommendation {
   explanation: { text: string; generatedBy: "deterministic" | "llm" };
   status: RecommendationStatus;
   createdBy: Actor;
+  /** Last actor who edited the config after creation. */
+  lastEditedBy?: Actor;
   createdAt: number;
   updatedAt: number;
 }

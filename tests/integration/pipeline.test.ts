@@ -14,7 +14,11 @@ import { registerStaticStoreTools } from "@/lib/webmcp/store-tools";
 import { driveTool } from "@/lib/webmcp/driver";
 import { ensureCatalogSeeded } from "@/lib/store-domain/services";
 import { SEED_PRODUCTS } from "@/lib/store-domain/catalog";
-import { approveRecommendation, publishRecommendation } from "@/lib/publishing/publish";
+import {
+  approveRecommendation,
+  publishRecommendation,
+  syncActiveCapabilities,
+} from "@/lib/publishing/publish";
 import { recommendationRepo, simulationRepo } from "@/lib/db/repositories";
 import { resetSessionizer } from "@/lib/sessions/sessionizer";
 import { telemetryRecorder } from "@/lib/telemetry/recorder";
@@ -128,6 +132,10 @@ describe("webmcp registry instrumentation", () => {
     const cap = await publishRecommendation(rec.id);
     expect(cap.toolName).toBe("compare_products");
     expect(cap.status).toBe("active");
+
+    // Simulate a store tab picking up the published capability.
+    window.history.replaceState(null, "", "/store");
+    await syncActiveCapabilities();
 
     const result = await driveTool("compare_products", {
       productIds: [SEED_PRODUCTS[0]!.id, SEED_PRODUCTS[1]!.id],

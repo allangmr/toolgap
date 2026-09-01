@@ -167,7 +167,7 @@ export default function GapDetailClient({ id }: { id: string }) {
         .map((p) => p.toolName);
       const result = buildRecommendation(gap, {
         takenToolNames,
-        createdBy: "human",
+        createdBy: recommendation.createdBy,
         override,
       });
       if (!result.ok) {
@@ -183,6 +183,9 @@ export default function GapDetailClient({ id }: { id: string }) {
         ...result.recommendation,
         id: recommendation.id,
         createdAt: recommendation.createdAt,
+        // Editing must not overwrite original authorship.
+        createdBy: recommendation.createdBy,
+        lastEditedBy: "human",
         updatedAt: Date.now(),
       };
       await recommendationRepo.put(rebuilt);
@@ -364,6 +367,17 @@ export default function GapDetailClient({ id }: { id: string }) {
           </Badge>
           <Badge tone="neutral">confidence {round(gap.confidence, 2)}</Badge>
         </div>
+        {!isResolved && gap.staleEvidenceCapabilityId ? (
+          <div className="mt-4 rounded-md border border-warning/30 bg-warning-subtle/50 p-4">
+            <p className="text-sm">
+              All supporting evidence predates published capability{" "}
+              <span className="font-mono">
+                {gap.staleEvidenceCapabilityId.slice(0, 8)}
+              </span>
+              . Re-evaluate only if new post-publish sessions show this friction.
+            </p>
+          </div>
+        ) : null}
         {isResolved && gap.resolvedByCapabilityId ? (
           <div className="mt-4 rounded-md border border-success/30 bg-success-subtle/50 p-4">
             <p className="text-sm">
@@ -503,6 +517,9 @@ export default function GapDetailClient({ id }: { id: string }) {
             <div className="flex flex-wrap gap-2">
               <StatusBadge status={recommendation.status} />
               <Badge tone="neutral">created by {recommendation.createdBy}</Badge>
+              {recommendation.lastEditedBy ? (
+                <Badge tone="info">edited by {recommendation.lastEditedBy}</Badge>
+              ) : null}
               <Badge tone="info">
                 explanation: {recommendation.explanation.generatedBy}
               </Badge>

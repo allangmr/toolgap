@@ -26,6 +26,10 @@ const cap: PublishedCapability = {
   registrationError: "stale",
 };
 
+function setPath(path: string): void {
+  window.history.replaceState(null, "", path);
+}
+
 describe("syncActiveCapabilities", () => {
   beforeEach(async () => {
     const db = resetDbForTests();
@@ -34,6 +38,7 @@ describe("syncActiveCapabilities", () => {
     resetRegistryForTests();
     getRegistry().setAdapterForTests(createNoopAdapter());
     await ensureCatalogSeeded();
+    setPath("/store");
   });
 
   it("registers active published tools and clears a recovered registrationError", async () => {
@@ -60,5 +65,12 @@ describe("syncActiveCapabilities", () => {
     await syncActiveCapabilities();
     const stored = await publishedRepo.get(cap.id);
     expect(stored?.registrationError).toBe("adapter down");
+  });
+
+  it("does not register store dynamic tools on dashboard pages", async () => {
+    setPath("/overview");
+    await publishedRepo.put(cap);
+    await syncActiveCapabilities();
+    expect(getRegistry().has("compare_products")).toBe(false);
   });
 });

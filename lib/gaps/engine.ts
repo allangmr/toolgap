@@ -176,9 +176,19 @@ export function mergeSignalsIntoGaps(
       // Update counts but keep
     }
 
+    // Fresh signals detected after the gap was flagged as pre-publish residue
+    // mean agents still hit this friction with the new capability live.
+    const latestSignalAt = Math.max(...keySignals.map((s) => s.detectedAt));
+    const staleCleared =
+      existing?.staleEvidenceAt != null && latestSignalAt > existing.staleEvidenceAt;
+
     const gap: CapabilityGap = existing
       ? {
           ...existing,
+          staleEvidenceCapabilityId: staleCleared
+            ? undefined
+            : existing.staleEvidenceCapabilityId,
+          staleEvidenceAt: staleCleared ? undefined : existing.staleEvidenceAt,
           confidence: round(confidence, 3),
           severity,
           supportingSessionIds: [...sessionIds],
