@@ -41,13 +41,13 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
               <p className="text-xs text-muted">Demo store · WebMCP instrumented</p>
             </div>
             <nav aria-label="Store" className="flex items-center gap-4 text-sm">
-              <Link href="/store" className="hover:underline">
+              <Link href="/store" className="text-foreground hover:underline">
                 Catalog
               </Link>
-              <Link href="/store/cart" className="hover:underline">
+              <Link href="/store/cart" className="text-foreground hover:underline">
                 Cart ({itemCount})
               </Link>
-              <Link href="/overview" className="text-accent hover:underline">
+              <Link href="/overview" className="font-medium text-accent hover:underline">
                 ToolGap
               </Link>
               <WebmcpStatusBadge />

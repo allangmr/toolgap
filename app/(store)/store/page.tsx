@@ -51,10 +51,10 @@ export default function StoreCatalogPage() {
           }}
         />
         <div className="relative max-w-xl">
-          <p className="font-mono text-sm uppercase tracking-[0.2em] text-accent">
+          <span className="inline-flex items-center rounded-sm bg-accent px-2.5 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-accent-ink">
             Fieldkit Market
-          </p>
-          <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight sm:text-5xl">
+          </span>
+          <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
             Tools for making, measuring, and moving.
           </h1>
           <p className="mt-4 text-muted">
@@ -68,21 +68,21 @@ export default function StoreCatalogPage() {
         onSubmit={(e) => void onSearch(e)}
         className="flex flex-wrap items-end gap-3 rounded-md border border-border bg-surface p-4 shadow-[var(--shadow-card)]"
       >
-        <label className="flex min-w-[180px] flex-1 flex-col gap-1 text-sm">
+        <label className="flex min-w-[180px] flex-1 flex-col gap-1 text-sm text-foreground">
           Search
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="rounded-sm border border-border-strong bg-surface-raised px-3 py-2"
+            className="lab-input mt-0"
             placeholder="headphones, laptop…"
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1 text-sm text-foreground">
           Category
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="rounded-sm border border-border-strong bg-surface-raised px-3 py-2"
+            className="lab-input mt-0 w-auto"
           >
             <option value="">All</option>
             {categories.map((c) => (
@@ -92,12 +92,12 @@ export default function StoreCatalogPage() {
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1 text-sm text-foreground">
           Brand
           <select
             value={brand}
             onChange={(e) => setBrand(e.target.value)}
-            className="rounded-sm border border-border-strong bg-surface-raised px-3 py-2"
+            className="lab-input mt-0 w-auto"
           >
             <option value="">All</option>
             {brands.map((b) => (

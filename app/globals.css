@@ -9,19 +9,19 @@
   --surface-raised: #ffffff;
   --border: #e5e0d3;
   --border-strong: #cfc7b4;
-  --accent: #b45309;
-  --accent-hover: #96430a;
+  --accent: #9a3412;
+  --accent-hover: #7c2d12;
   --accent-subtle: #f7e8d4;
   --accent-ink: #fdf9f1;
-  --danger: #a83a2a;
+  --danger: #9f1239;
   --danger-subtle: #f8e3de;
-  --warning: #8a5a06;
+  --warning: #854d0e;
   --warning-subtle: #f5ecd2;
-  --success: #3e7a4c;
+  --success: #166534;
   --success-subtle: #e3efe4;
-  --info: #5f6675;
+  --info: #44403c;
   --info-subtle: #eaeaec;
-  --muted: #6e675b;
+  --muted: #57534e;
   --radius: 8px;
   --radius-card: 12px;
   --radius-frame: 16px;
@@ -93,6 +93,19 @@ body {
   top: 1rem;
 }
 
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]),
+select,
+textarea {
+  color: var(--foreground);
+  color-scheme: light;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
 .lab-input {
   width: 100%;
   border: 1px solid var(--border-strong);
@@ -104,6 +117,7 @@ body {
 
 .lab-input::placeholder {
   color: var(--muted);
+  opacity: 1;
 }
 
 .lab-input:focus {
