@@ -11,7 +11,8 @@ import {
 import { exportDump, importDump } from "@/lib/db/dump";
 import { rebuildDerivedData } from "@/lib/analysis/pipeline";
 import { seedAllScenarios, seedPostPublishTraffic } from "@/lib/seed/scenarios";
-import { Button, Card, Dialog } from "@/components/ui";
+import { Button, Dialog } from "@/components/ui";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useAnalysisStatus } from "@/components/providers/AnalysisStatusProvider";
 import { driveSequence } from "@/lib/webmcp/driver";
 import { SEED_PRODUCTS } from "@/lib/store-domain/catalog";
@@ -61,16 +62,16 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="text-sm text-muted">Seed data, analysis rebuild, and local data controls.</p>
-      </header>
+      <PageHeader
+        title="Settings"
+        description="Seed data, analysis rebuild, and local data controls."
+      />
 
       <p className="text-sm" aria-live="polite">
         {message}
       </p>
 
-      <Card as="section" className="space-y-3">
+      <section className="space-y-3 border-t border-border pt-5">
         <h2 className="font-semibold">Sample data</h2>
         <p className="text-sm text-muted">
           Drives sample journeys through the live store WebMCP tools so telemetry,
@@ -125,9 +126,9 @@ export default function SettingsPage() {
         >
           Load post-publish traffic
         </Button>
-      </Card>
+      </section>
 
-      <Card as="section" className="space-y-3">
+      <section className="space-y-3 border-t border-border pt-5">
         <h2 className="font-semibold">Session & analysis</h2>
         <p className="text-sm text-muted">
           New session after this many seconds without a tool call. Range{" "}
@@ -143,7 +144,7 @@ export default function SettingsPage() {
           <label className="text-sm">
             Inactivity timeout (seconds)
             <input
-              className="mt-1 block w-28 rounded border border-border bg-transparent px-2 py-1"
+              className="lab-input mt-1 block w-28"
               type="number"
               min={TIMEOUT_SECONDS_MIN}
               max={TIMEOUT_SECONDS_MAX}
@@ -181,17 +182,20 @@ export default function SettingsPage() {
             Reset current tab session
           </Button>
         </div>
-      </Card>
+      </section>
 
-      <Card as="section" className="space-y-3">
+      <section className="space-y-3 border-t border-border pt-5">
         <h2 className="font-semibold">Redaction</h2>
         <p className="text-sm text-muted">
-          Keys redacted from persisted tool inputs. Tool-specific keys still apply
-          on top of this list.
+          Keys redacted from persisted tool inputs. Tool-specific keys still apply on top
+          of this list.
         </p>
         <ul className="flex flex-wrap gap-2 text-xs">
           {(settings?.redactionKeys ?? []).map((k) => (
-            <li key={k} className="flex items-center gap-1 rounded bg-surface-muted px-2 py-1">
+            <li
+              key={k}
+              className="flex items-center gap-1 rounded bg-surface-muted px-2 py-1"
+            >
               <span>{k}</span>
               <button
                 type="button"
@@ -225,23 +229,26 @@ export default function SettingsPage() {
           }}
         >
           <input
-            className="rounded border border-border bg-transparent px-2 py-1 text-sm"
+            className="lab-input text-sm"
             value={newRedactionKey}
             onChange={(e) => setNewRedactionKey(e.target.value)}
             placeholder="Add key"
             aria-label="New redaction key"
           />
-          <Button type="submit" variant="secondary" disabled={busy || !newRedactionKey.trim()}>
+          <Button
+            type="submit"
+            variant="secondary"
+            disabled={busy || !newRedactionKey.trim()}
+          >
             Add key
           </Button>
         </form>
-      </Card>
+      </section>
 
-      <Card as="section" className="space-y-3">
+      <section className="space-y-3 border-t border-border pt-5">
         <h2 className="font-semibold">Export / import</h2>
         <p className="text-sm text-muted">
-          Export writes every IndexedDB table. Import replaces local data with
-          that dump.
+          Export writes every IndexedDB table. Import replaces local data with that dump.
         </p>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -291,9 +298,9 @@ export default function SettingsPage() {
             Import JSON…
           </Button>
         </div>
-      </Card>
+      </section>
 
-      <Card as="section" className="space-y-3 border-danger/30">
+      <section className="space-y-3 border-t border-danger/40 pt-5">
         <h2 className="font-semibold text-danger">Danger zone</h2>
         <Button
           variant="danger"
@@ -309,7 +316,7 @@ export default function SettingsPage() {
         >
           Reset all data
         </Button>
-      </Card>
+      </section>
 
       <Dialog
         open={pendingDump != null}
@@ -339,8 +346,8 @@ export default function SettingsPage() {
         }
       >
         <p className="text-sm">
-          This clears current ToolGap tables and writes the imported dump. Use a
-          file produced by Export JSON.
+          This clears current ToolGap tables and writes the imported dump. Use a file
+          produced by Export JSON.
         </p>
       </Dialog>
     </div>

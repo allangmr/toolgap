@@ -6,6 +6,8 @@ import { useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { journeyRepo, sessionRepo } from "@/lib/db/repositories";
 import { EmptyState, Pager, StatusBadge, Table, Td, Tr } from "@/components/ui";
+import { PageHeader } from "@/components/dashboard/PageHeader";
+import { EvidencePulse } from "@/components/viz/EvidencePulse";
 import { formatDuration, formatTimestamp, paginate, parsePage } from "@/lib/shared";
 
 export default function SessionsPageClient() {
@@ -39,17 +41,14 @@ export default function SessionsPageClient() {
   }
 
   return (
-    <div className="space-y-4">
-      <header>
-        <h1 className="text-2xl font-semibold">Agent Sessions</h1>
-        <p className="text-sm text-muted">Observed WebMCP call sessions.</p>
-      </header>
+    <div className="space-y-6">
+      <PageHeader title="Agent Sessions" description="Observed WebMCP call sessions." />
 
       <div className="flex flex-wrap gap-3 text-sm">
         <label className="flex items-center gap-2">
           Status
           <select
-            className="rounded border border-border bg-surface px-2 py-1"
+            className="lab-input w-auto"
             value={statusFilter}
             onChange={(e) => setParam("status", e.target.value)}
           >
@@ -62,7 +61,7 @@ export default function SessionsPageClient() {
         <label className="flex items-center gap-2">
           Surface
           <select
-            className="rounded border border-border bg-surface px-2 py-1"
+            className="lab-input w-auto"
             value={surfaceFilter}
             onChange={(e) => setParam("surface", e.target.value)}
           >
@@ -77,9 +76,9 @@ export default function SessionsPageClient() {
         <EmptyState
           title="No agent sessions yet"
           description="Sessions appear when agents call WebMCP tools. Load sample data from Overview, or open the demo store and run the live agent driver from Settings."
+          visual={<EvidencePulse filled={0} threshold={3} />}
         />
       ) : (
-      <div className="rounded-lg border border-border bg-surface">
         <Table
           caption="Agent sessions"
           headers={[
@@ -100,13 +99,13 @@ export default function SessionsPageClient() {
                 <Td>
                   <Link
                     href={`/sessions/${s.id}`}
-                    className="font-medium text-accent hover:underline"
+                    className="font-mono font-medium text-accent hover:underline"
                   >
                     {s.id.slice(0, 8)}
                   </Link>
                 </Td>
-                <Td>{formatTimestamp(s.startedAt)}</Td>
-                <Td>{formatDuration(duration)}</Td>
+                <Td className="font-mono text-xs">{formatTimestamp(s.startedAt)}</Td>
+                <Td className="font-mono text-xs">{formatDuration(duration)}</Td>
                 <Td>{s.callCount}</Td>
                 <Td>
                   <StatusBadge status={s.status} />
@@ -118,19 +117,18 @@ export default function SessionsPageClient() {
                       <StatusBadge status="inferred" />
                     </span>
                   ) : (
-                    "—"
+                    "n/a"
                   )}
                 </Td>
                 <Td>
                   {journey && journey.frictionScore > 0
                     ? `${journey.frictionScore} wasted calls (est.)`
-                    : "—"}
+                    : "n/a"}
                 </Td>
               </Tr>
             );
           })}
         </Table>
-      </div>
       )}
       <Pager
         page={windowed.page}

@@ -8,7 +8,10 @@ export function Timeline({
   label?: string;
 }) {
   return (
-    <ol aria-label={label} className="relative space-y-0 border-l border-border-strong ml-3">
+    <ol
+      aria-label={label}
+      className="relative ml-3 space-y-0 border-l border-border-strong"
+    >
       {children}
     </ol>
   );
@@ -41,8 +44,8 @@ export function TimelineItem({
         className={`absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full ${dot}`}
       />
       <div className="flex flex-wrap items-baseline gap-2">
-        <p className="font-medium">{title}</p>
-        {meta ? <p className="text-xs text-muted">{meta}</p> : null}
+        <p className="font-mono text-sm font-medium">{title}</p>
+        {meta ? <p className="font-mono text-[11px] text-muted">{meta}</p> : null}
       </div>
       {children ? <div className="mt-1 text-sm text-muted">{children}</div> : null}
     </li>

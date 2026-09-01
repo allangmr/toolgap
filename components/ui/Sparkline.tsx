@@ -52,12 +52,7 @@ export function Sparkline({
       viewBox={`0 0 ${width} ${height}`}
       className="text-accent"
     >
-      <polyline
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={2}
-        points={points}
-      />
+      <polyline fill="none" stroke="currentColor" strokeWidth={1.5} points={points} />
     </svg>
   );
 }

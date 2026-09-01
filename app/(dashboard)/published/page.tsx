@@ -8,7 +8,9 @@ import {
   journeyRepo,
   toolCallRepo,
 } from "@/lib/db/repositories";
-import { Button, Card, Dialog, StatusBadge } from "@/components/ui";
+import { Button, Dialog, StatusBadge } from "@/components/ui";
+import { PageHeader } from "@/components/dashboard/PageHeader";
+import { DeltaFigure } from "@/components/viz/DeltaFigure";
 import { deactivateCapability } from "@/lib/publishing/publish";
 import { computeBeforeAfter } from "@/lib/measurement/before-after";
 import { seedPostPublishTraffic } from "@/lib/seed/scenarios";
@@ -46,18 +48,16 @@ export default function PublishedPage() {
     setMessage(
       snapshot.sufficientData
         ? "Before/after snapshot updated."
-        : "Snapshot saved — insufficient sample size for firm conclusions.",
+        : "Snapshot saved - insufficient sample size for firm conclusions.",
     );
   }
 
   return (
     <div className="space-y-4">
-      <header>
-        <h1 className="text-2xl font-semibold">Published Capabilities</h1>
-        <p className="text-sm text-muted">
-          Dynamically registered WebMCP tools from approved recommendations.
-        </p>
-      </header>
+      <PageHeader
+        title="Published Capabilities"
+        description="Dynamically registered WebMCP tools from approved recommendations."
+      />
 
       <p className="text-sm text-muted" aria-live="polite">
         {message}
@@ -74,9 +74,7 @@ export default function PublishedPage() {
             void seedPostPublishTraffic(active.id)
               .then(() => analysis.refresh())
               .then(() => setMessage("Post-publish traffic loaded."))
-              .catch((e) =>
-                setMessage(e instanceof Error ? e.message : String(e)),
-              )
+              .catch((e) => setMessage(e instanceof Error ? e.message : String(e)))
               .finally(() => setBusy(false));
           }}
         >
@@ -164,19 +162,20 @@ function PublishedCard({
   if (!cap) return null;
 
   return (
-    <Card as="article">
+    <article className="border border-border bg-surface p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="font-mono text-lg font-semibold">{cap.toolName}</h2>
-          <p className="text-sm text-muted">
-            {cap.templateType} · v{cap.version} · published{" "}
-            {formatTimestamp(cap.publishedAt)}
+          <h2 className="font-mono text-xl font-medium">{cap.toolName}</h2>
+          <p className="font-mono text-xs text-muted">
+            {cap.templateType} v{cap.version} published {formatTimestamp(cap.publishedAt)}
           </p>
         </div>
         <StatusBadge status={cap.status} />
       </div>
       {cap.registrationError ? (
-        <p className="mt-2 text-sm text-danger">Registration error: {cap.registrationError}</p>
+        <p className="mt-2 text-sm text-danger">
+          Registration error: {cap.registrationError}
+        </p>
       ) : cap.status === "active" ? (
         <p className="mt-2 text-sm text-muted">
           {hasInTab === null
@@ -199,30 +198,28 @@ function PublishedCard({
             {snapshot.before.sampleSize}, after n={snapshot.after.sampleSize}.
           </p>
         ) : (
-          <div className="mt-2 grid gap-3 sm:grid-cols-2 text-sm">
-            <div className="rounded border border-border p-3">
-              <p className="text-xs text-muted">Before (measured)</p>
-              <p>avg calls {snapshot.before.avgCalls}</p>
-              <p>
-                completion{" "}
+          <div className="mt-3">
+            <DeltaFigure
+              before={snapshot.before.avgCalls}
+              after={snapshot.after.avgCalls}
+              unit="avg calls"
+            />
+            <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+              <p className="font-mono text-xs text-muted">
+                Before completion{" "}
                 {snapshot.before.completionRate === null
                   ? "Not measured"
-                  : `${round(snapshot.before.completionRate * 100, 1)}%`}
+                  : `${round(snapshot.before.completionRate * 100, 1)}%`}{" "}
+                · duration {snapshot.before.avgDurationMs}ms · n=
+                {snapshot.before.sampleSize}
               </p>
-              <p>duration {snapshot.before.avgDurationMs}ms</p>
-              <p className="text-xs text-muted">n={snapshot.before.sampleSize}</p>
-            </div>
-            <div className="rounded border border-border p-3">
-              <p className="text-xs text-muted">After (measured)</p>
-              <p>avg calls {snapshot.after.avgCalls}</p>
-              <p>
-                completion{" "}
+              <p className="font-mono text-xs text-muted">
+                After completion{" "}
                 {snapshot.after.completionRate === null
                   ? "Not measured"
-                  : `${round(snapshot.after.completionRate * 100, 1)}%`}
+                  : `${round(snapshot.after.completionRate * 100, 1)}%`}{" "}
+                · duration {snapshot.after.avgDurationMs}ms · n={snapshot.after.sampleSize}
               </p>
-              <p>duration {snapshot.after.avgDurationMs}ms</p>
-              <p className="text-xs text-muted">n={snapshot.after.sampleSize}</p>
             </div>
           </div>
         )}
@@ -238,6 +235,6 @@ function PublishedCard({
           </Button>
         ) : null}
       </div>
-    </Card>
+    </article>
   );
 }

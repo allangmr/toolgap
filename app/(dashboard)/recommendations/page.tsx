@@ -4,17 +4,18 @@ import Link from "next/link";
 import { useLiveQuery } from "dexie-react-hooks";
 import { recommendationRepo } from "@/lib/db/repositories";
 import { Badge, EmptyState, StatusBadge, Table, Td, Tr } from "@/components/ui";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { formatTimestamp } from "@/lib/shared";
 
 export default function RecommendationsPage() {
   const recommendations = useLiveQuery(() => recommendationRepo.all(), []) ?? [];
 
   return (
-    <div className="space-y-4">
-      <header>
-        <h1 className="text-2xl font-semibold">Recommendations</h1>
-        <p className="text-sm text-muted">Structured capability proposals derived from gaps.</p>
-      </header>
+    <div className="space-y-6">
+      <PageHeader
+        title="Recommendations"
+        description="Structured capability proposals derived from gaps."
+      />
 
       {recommendations.length === 0 ? (
         <EmptyState
@@ -22,7 +23,6 @@ export default function RecommendationsPage() {
           description="Open a capability gap with a publishable template and click Build recommendation."
         />
       ) : (
-      <div className="rounded-lg border border-border bg-surface">
         <Table
           caption="Recommendations"
           headers={["Tool", "Template", "Status", "Created by", "Updated", "Gap"]}
@@ -39,7 +39,7 @@ export default function RecommendationsPage() {
                   {r.createdBy}
                 </Badge>
               </Td>
-              <Td>{formatTimestamp(r.updatedAt)}</Td>
+              <Td className="font-mono text-xs">{formatTimestamp(r.updatedAt)}</Td>
               <Td>
                 <Link href={`/gaps/${r.gapId}`} className="text-accent hover:underline">
                   Open gap
@@ -48,7 +48,6 @@ export default function RecommendationsPage() {
             </Tr>
           ))}
         </Table>
-      </div>
       )}
     </div>
   );

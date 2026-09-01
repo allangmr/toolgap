@@ -23,6 +23,9 @@ import {
 } from "@/components/ui";
 import { JourneySignature } from "@/components/dashboard/JourneySignature";
 import { RecommendationConfigForm } from "@/components/dashboard/RecommendationConfigForm";
+import { EvidencePulse } from "@/components/viz/EvidencePulse";
+import { ConfidenceBand } from "@/components/viz/ConfidenceBand";
+import { GapCollapse } from "@/components/viz/GapCollapse";
 import {
   buildRecommendation,
   templateForGapType,
@@ -31,10 +34,7 @@ import {
 import type { Recommendation } from "@/lib/shared/types";
 import { simulate } from "@/lib/recommendations/simulation";
 import { dismissGap, transitionGap } from "@/lib/gaps/engine";
-import {
-  approveRecommendation,
-  publishRecommendation,
-} from "@/lib/publishing/publish";
+import { approveRecommendation, publishRecommendation } from "@/lib/publishing/publish";
 import { formatTimestamp, round } from "@/lib/shared";
 import {
   formatCompletionRate,
@@ -45,14 +45,15 @@ import { useAnalysisStatus } from "@/components/providers/AnalysisStatusProvider
 export default function GapDetailClient({ id }: { id: string }) {
   const gap = useLiveQuery(() => gapRepo.get(id), [id]);
   const recommendation = useLiveQuery(
-    async () => (gap?.recommendationId ? recommendationRepo.get(gap.recommendationId) : recommendationRepo.byGap(id)),
+    async () =>
+      gap?.recommendationId
+        ? recommendationRepo.get(gap.recommendationId)
+        : recommendationRepo.byGap(id),
     [gap?.recommendationId, id],
   );
   const simulation = useLiveQuery(
     async () =>
-      recommendation
-        ? simulationRepo.byRecommendation(recommendation.id)
-        : undefined,
+      recommendation ? simulationRepo.byRecommendation(recommendation.id) : undefined,
     [recommendation?.id],
   );
   const journeys = useLiveQuery(() => journeyRepo.all(), []) ?? [];
@@ -129,7 +130,9 @@ export default function GapDetailClient({ id }: { id: string }) {
     setIssues([]);
     try {
       const takenToolNames = published
-        .filter((p) => p.status === "active" && p.toolName !== recommendation.proposedToolName)
+        .filter(
+          (p) => p.status === "active" && p.toolName !== recommendation.proposedToolName,
+        )
         .map((p) => p.toolName);
       const result = buildRecommendation(gap, {
         takenToolNames,
@@ -162,9 +165,7 @@ export default function GapDetailClient({ id }: { id: string }) {
           "human",
         ),
       );
-      setMessage(
-        "Configuration saved. Simulate and approve again before publishing.",
-      );
+      setMessage("Configuration saved. Simulate and approve again before publishing.");
     } catch (e) {
       setMessage(e instanceof Error ? e.message : String(e));
     } finally {
@@ -249,16 +250,20 @@ export default function GapDetailClient({ id }: { id: string }) {
   const canBuild = templateForGapType(gap.type) !== null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
         <Link href="/gaps" className="text-sm text-accent hover:underline">
           ← Capability gaps
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold">{gap.title}</h1>
-        <div className="mt-2 flex flex-wrap gap-2">
+        <h1 className="mt-3 font-display text-3xl font-medium tracking-tight md:text-4xl">
+          {gap.title}
+        </h1>
+        <div className="mt-3 flex flex-wrap gap-2">
           <StatusBadge status={gap.status} />
           <StatusBadge status={gap.severity} />
-          <Badge tone="info">inferred: {gap.detectedIntent}</Badge>
+          <Badge tone="info" dashed>
+            inferred: {gap.detectedIntent}
+          </Badge>
           <Badge tone="neutral">confidence {round(gap.confidence, 2)}</Badge>
         </div>
         {gap.status === "resolved" && gap.resolvedByCapabilityId ? (
@@ -267,6 +272,40 @@ export default function GapDetailClient({ id }: { id: string }) {
             {gap.resolvedAt ? ` at ${formatTimestamp(gap.resolvedAt)}` : ""}.
           </p>
         ) : null}
+      </div>
+
+      <div className="grid gap-6 border border-accent/30 bg-accent-subtle/20 p-5 md:grid-cols-3">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-wider text-muted">
+            What agents are trying to do
+          </p>
+          <p className="mt-2 font-display text-xl">{gap.detectedIntent}</p>
+        </div>
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-wider text-muted">
+            What they do today
+          </p>
+          <div className="mt-2">
+            {dominantSignature ? (
+              <JourneySignature signature={dominantSignature} />
+            ) : (
+              <p className="text-sm text-muted">No supporting journeys.</p>
+            )}
+          </div>
+        </div>
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-wider text-muted">
+            What is missing
+          </p>
+          <p className="mt-2 font-mono text-lg text-accent">
+            {recommendation?.proposedToolName ?? "capability not proposed yet"}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <EvidencePulse filled={gap.supportingSessionIds.length} threshold={3} />
+        <ConfidenceBand value={gap.confidence} />
       </div>
 
       <div className="flex flex-wrap gap-2" role="group" aria-label="Gap actions">
@@ -280,13 +319,16 @@ export default function GapDetailClient({ id }: { id: string }) {
             Simulate
           </Button>
         ) : null}
-        {recommendation && recommendation.status !== "approved" && recommendation.status !== "published" ? (
+        {recommendation &&
+        recommendation.status !== "approved" &&
+        recommendation.status !== "published" ? (
           <Button variant="secondary" onClick={() => void onApprove()} disabled={busy}>
             Approve
           </Button>
         ) : null}
         {recommendation &&
-        (recommendation.status === "approved" || recommendation.status === "simulated") ? (
+        (recommendation.status === "approved" ||
+          recommendation.status === "simulated") ? (
           <Button onClick={() => setPublishOpen(true)} disabled={busy}>
             Publish…
           </Button>
@@ -321,7 +363,7 @@ export default function GapDetailClient({ id }: { id: string }) {
       <TabPanel id="evidence" active={tab}>
         <div className="grid gap-4 lg:grid-cols-2">
           <Card as="section">
-            <h2 className="font-semibold">Supporting evidence</h2>
+            <h2 className="font-display text-lg font-medium">Supporting evidence</h2>
             <ul className="mt-3 space-y-2 text-sm">
               {gapSignals.map((s) => (
                 <li key={s.id} className="rounded border border-border p-2">
@@ -341,7 +383,7 @@ export default function GapDetailClient({ id }: { id: string }) {
             </ul>
           </Card>
           <Card as="section">
-            <h2 className="font-semibold">Dominant journey pattern</h2>
+            <h2 className="font-display text-lg font-medium">Dominant journey pattern</h2>
             {dominantSignature ? (
               <div className="mt-3">
                 <JourneySignature signature={dominantSignature} />
@@ -382,16 +424,14 @@ export default function GapDetailClient({ id }: { id: string }) {
           <Card as="section" className="space-y-4">
             <div className="flex flex-wrap gap-2">
               <StatusBadge status={recommendation.status} />
-              <Badge tone="neutral">
-                created by {recommendation.createdBy}
-              </Badge>
+              <Badge tone="neutral">created by {recommendation.createdBy}</Badge>
               <Badge tone="info">
                 explanation: {recommendation.explanation.generatedBy}
               </Badge>
               <Badge tone="warning">benefit: estimated</Badge>
             </div>
             <div>
-              <h2 className="font-mono text-lg font-semibold">
+              <h2 className="font-mono text-2xl font-medium">
                 {recommendation.proposedToolName}
               </h2>
               <p className="mt-1 text-sm">{recommendation.description}</p>
@@ -431,9 +471,8 @@ export default function GapDetailClient({ id }: { id: string }) {
               </ul>
             </div>
             <p className="text-sm text-muted">
-              Estimated call reduction:{" "}
-              {recommendation.estimatedBenefit.callReduction} fewer calls per
-              affected journey. See the Simulation tab for durations.
+              Estimated call reduction: {recommendation.estimatedBenefit.callReduction}{" "}
+              fewer calls per affected journey. See the Simulation tab for durations.
             </p>
           </Card>
         )}
@@ -441,39 +480,23 @@ export default function GapDetailClient({ id }: { id: string }) {
 
       <TabPanel id="simulation" active={tab}>
         {!simulation ? (
-          <p className="text-sm text-muted">Run a simulation to compare current vs proposed journeys.</p>
+          <p className="text-sm text-muted">
+            Run a simulation to compare current vs proposed journeys.
+          </p>
         ) : (
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Card>
-              <h2 className="font-semibold">Current (measured)</h2>
-              <p className="mt-2 font-mono text-2xl">{simulation.current.calls} calls</p>
-              <p className="text-sm text-muted">
-                avg duration {simulation.current.avgDurationMs}ms ·{" "}
-                <StatusBadge status="measured" />
-              </p>
-              {dominantSignature ? (
-                <div className="mt-3">
-                  <JourneySignature signature={dominantSignature} />
-                </div>
-              ) : null}
-            </Card>
-            <Card>
-              <h2 className="font-semibold">Proposed (estimated)</h2>
-              <p className="mt-2 font-mono text-2xl">{simulation.proposed.calls} calls</p>
-              <p className="text-sm text-muted">
-                est. duration {simulation.proposed.estDurationMs}ms ·{" "}
-                <StatusBadge status="estimated" />
-              </p>
-              {recommendation ? (
-                <div className="mt-3">
-                  <JourneySignature
-                    signature={`search_products>${recommendation.proposedToolName}`}
-                  />
-                </div>
-              ) : null}
-            </Card>
-            <Card className="lg:col-span-2">
-              <h3 className="font-semibold">Assumptions</h3>
+          <div className="space-y-6">
+            <GapCollapse
+              currentSignature={dominantSignature ?? ""}
+              proposedSignature={
+                recommendation ? `search_products>${recommendation.proposedToolName}` : ""
+              }
+              currentCalls={simulation.current.calls}
+              proposedCalls={simulation.proposed.calls}
+              currentDurationMs={simulation.current.avgDurationMs}
+              proposedDurationMs={simulation.proposed.estDurationMs}
+            />
+            <div className="border-t border-border pt-4">
+              <h3 className="font-display text-lg font-medium">Assumptions</h3>
               <ul className="mt-2 list-disc pl-5 text-sm text-muted">
                 {simulation.assumptions.map((a) => (
                   <li key={a}>{a}</li>
@@ -485,7 +508,7 @@ export default function GapDetailClient({ id }: { id: string }) {
               <p className="text-sm text-muted">
                 Completion improvement is not quantified numerically in MVP.
               </p>
-            </Card>
+            </div>
           </div>
         )}
       </TabPanel>
@@ -497,7 +520,7 @@ export default function GapDetailClient({ id }: { id: string }) {
               <StatusBadge status={h.status} />
               <span>{formatTimestamp(h.at)}</span>
               <span className="text-muted">by {h.by}</span>
-              {h.reason ? <span className="text-muted">— {h.reason}</span> : null}
+              {h.reason ? <span className="text-muted">- {h.reason}</span> : null}
             </li>
           ))}
         </ol>
@@ -561,7 +584,7 @@ export default function GapDetailClient({ id }: { id: string }) {
         <label className="block text-sm">
           Reason
           <textarea
-            className="mt-1 w-full rounded border border-border p-2"
+            className="lab-input mt-1"
             rows={3}
             value={dismissReason}
             onChange={(e) => setDismissReason(e.target.value)}

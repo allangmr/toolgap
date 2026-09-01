@@ -51,12 +51,14 @@ export default function StoreCatalogPage() {
           }}
         />
         <div className="relative max-w-xl">
-          <p className="text-sm uppercase tracking-[0.2em] text-[#a8a29e]">Fieldkit Market</p>
+          <p className="text-sm uppercase tracking-[0.2em] text-[#a8a29e]">
+            Fieldkit Market
+          </p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
             Tools for making, measuring, and moving.
           </h1>
           <p className="mt-4 text-[#d6d3d1]">
-            A living catalog instrumented with WebMCP — so agents can shop the way the site
+            A living catalog instrumented with WebMCP so agents can shop the way the site
             actually works.
           </p>
         </div>

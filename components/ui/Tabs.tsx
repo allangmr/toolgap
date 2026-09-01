@@ -12,7 +12,11 @@ export function Tabs({
   onChange: (id: string) => void;
 }) {
   return (
-    <div role="tablist" aria-label="Section tabs" className="flex flex-wrap gap-1 border-b border-border">
+    <div
+      role="tablist"
+      aria-label="Section tabs"
+      className="flex flex-wrap gap-1 border-b border-border"
+    >
       {tabs.map((tab) => {
         const selected = tab.id === active;
         return (
@@ -25,9 +29,9 @@ export function Tabs({
             aria-controls={`panel-${tab.id}`}
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(tab.id)}
-            className={`border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+            className={`relative border-b-2 px-3 py-2 text-sm font-medium transition-colors duration-[var(--duration)] ${
               selected
-                ? "border-accent text-accent"
+                ? "border-accent text-foreground"
                 : "border-transparent text-muted hover:text-foreground"
             }`}
           >
@@ -50,7 +54,12 @@ export function TabPanel({
 }) {
   if (id !== active) return null;
   return (
-    <div role="tabpanel" id={`panel-${id}`} aria-labelledby={`tab-${id}`} className="pt-4">
+    <div
+      role="tabpanel"
+      id={`panel-${id}`}
+      aria-labelledby={`tab-${id}`}
+      className="pt-4"
+    >
       {children}
     </div>
   );
