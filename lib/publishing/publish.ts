@@ -166,6 +166,10 @@ async function markResidualGapsStale(
 
 export async function registerPublishedCapability(
   capability: PublishedCapability,
+  options?: {
+    /** Register even off the store surface (seed/demo drivers only). */
+    force?: boolean;
+  },
 ): Promise<void> {
   const registry = getRegistry();
   await registry.whenReady();
@@ -181,7 +185,7 @@ export async function registerPublishedCapability(
   // Store-surface capabilities are only exposed on store tabs. Publishing
   // happens on the dashboard; store tabs pick the tool up via
   // DynamicCapabilityLoader / syncActiveCapabilities.
-  if (currentPageSurface() !== "store") return;
+  if (!options?.force && currentPageSurface() !== "store") return;
 
   if (registry.has(capability.toolName)) {
     registry.unregisterTool(capability.toolName);
