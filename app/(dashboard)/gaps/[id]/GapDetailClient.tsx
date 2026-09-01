@@ -274,7 +274,7 @@ export default function GapDetailClient({ id }: { id: string }) {
         ) : null}
       </div>
 
-      <div className="grid gap-6 border border-accent/30 bg-accent-subtle/20 p-5 md:grid-cols-3">
+      <div className="grid gap-6 rounded-md border border-accent/30 bg-accent-subtle/40 p-5 md:grid-cols-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-wider text-muted">
             What agents are trying to do

@@ -46,8 +46,10 @@ export default function GapsPageClient() {
           <button
             key={s}
             type="button"
-            className={`rounded-[4px] px-3 py-1 ${
-              status === s ? "bg-accent text-accent-ink" : "bg-surface-muted text-muted"
+            className={`rounded-sm px-3 py-1 ${
+              status === s
+                ? "bg-accent text-accent-ink"
+                : "bg-surface-muted text-muted hover:text-foreground"
             }`}
             onClick={() => router.push(`/gaps?status=${s}`)}
           >

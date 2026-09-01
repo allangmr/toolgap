@@ -36,7 +36,7 @@ export function RecommendationConfigForm({
   }
 
   return (
-    <section className="space-y-6 border border-border bg-surface-muted/30 p-5">
+    <section className="space-y-6 rounded-md border border-border bg-surface-muted/40 p-5">
       <div>
         <h3 className="font-display text-lg font-medium">Capability</h3>
         <p className="mt-1 text-xs text-muted">
@@ -99,7 +99,7 @@ export function RecommendationConfigForm({
             {PRODUCT_FIELD_WHITELIST.map((field) => (
               <label
                 key={field}
-                className="flex items-center gap-2 border border-border px-2 py-1.5 text-xs"
+                className="flex items-center gap-2 rounded-sm border border-border bg-surface px-2 py-1.5 text-xs"
               >
                 <input
                   type="checkbox"

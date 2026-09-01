@@ -13,8 +13,8 @@ export default function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
-      <h1 className="text-3xl font-semibold text-[#1c1917]">Checkout</h1>
-      <p className="text-sm text-[#78716c]">
+      <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">Checkout</h1>
+      <p className="text-sm text-muted">
         Simulated checkout. No payment is processed.
       </p>
 
@@ -38,11 +38,11 @@ export default function CheckoutPage() {
           Complete simulated checkout
         </Button>
       ) : (
-        <div className="rounded-xl border border-[#e4ddd3] bg-white p-6">
+        <div className="rounded-md border border-border bg-surface p-6 shadow-[var(--shadow-card)]">
           <h2 className="text-lg font-semibold text-success">Order confirmed</h2>
           <p className="mt-2 text-sm">Order {order.id.slice(0, 8)}</p>
           <p className="tabular-nums">Total ${order.total.toFixed(2)}</p>
-          <p className="mt-1 text-xs text-[#78716c]">Status: {order.status}</p>
+          <p className="mt-1 text-xs text-muted">Status: {order.status}</p>
           <Link href="/store" className="mt-4 inline-block text-accent underline">
             Continue shopping
           </Link>
