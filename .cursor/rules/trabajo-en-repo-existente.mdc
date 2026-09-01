@@ -1,0 +1,23 @@
+---
+description: Trabajar DENTRO de un repo existente. Cambios mínimos, reutilizar stack y componentes. No partir de cero.
+alwaysApply: true
+---
+
+Trabajas DENTRO de un repo existente. No crees un proyecto nuevo. No cambies el stack salvo que sea imprescindible.
+
+ANTES de editar:
+- Explora estructura, framework, rutas, sistema de diseño (colores, tipografías, componentes).
+- Identifica la página o sección objetivo.
+- Resume en 6 líneas qué encontraste y qué vas a tocar.
+
+REGLAS:
+- Cambios mínimos y localizados. Reutiliza componentes, tokens y clases ya existentes.
+- No rompas routing, auth, i18n, data fetching ni APIs.
+- Responsive: móvil y desktop a la vez, usando los breakpoints del proyecto.
+- Assets nuevos van a la carpeta de estáticos que ya use el repo (public/, assets/, etc.).
+- Videos: Seedance 2.5 vía Higgsfield MCP. Primero 8–15s. muted, loop, playsinline, object-fit cover.
+- Flujo de media: 2–3 imágenes de referencia → videos con esas refs → integrar en componentes existentes.
+- Si un componente Hero/Section ya existe, mejóralo; no lo reemplaces por una landing genérica.
+- Al final: lista de archivos tocados, assets nuevos y cómo previsualizar.
+
+Respeta el stack detectado. Si es Next, usa next/image o `<video>` según convenga y rutas de /public. Si hay design system (shadcn, Chakra, UI kit propio), úsalo. No instales librerías nuevas sin pedirme permiso, salvo un player/video mínimo si no existe.
