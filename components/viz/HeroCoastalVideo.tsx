@@ -46,8 +46,9 @@ export function HeroCoastalVideo() {
           <source src={HERO_VIDEO_SRC} type="video/mp4" />
         </video>
       )}
-      <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/48" />
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/55" />
+      <div className="absolute inset-0 bg-gradient-to-r from-background via-background/88 to-background/42" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-background/70" />
+      <div className="absolute inset-y-0 left-0 w-[min(100%,42rem)] bg-[radial-gradient(120%_80%_at_0%_40%,rgb(12_14_18_/_0.72),transparent_70%)]" />
     </div>
   );
 }

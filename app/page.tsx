@@ -1,10 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui";
 import { HeroCoastalVideo } from "@/components/viz/HeroCoastalVideo";
+import { HeroMotionField } from "@/components/viz/HeroMotionField";
 import { SignalChainHero } from "@/components/viz/SignalChainHero";
 import { seedAllScenarios } from "@/lib/seed/scenarios";
 import { runAnalysis } from "@/lib/analysis/pipeline";
@@ -27,106 +29,92 @@ export default function HomePage() {
   }
 
   return (
-    <main id="main" className="flex flex-1 flex-col">
-      <header className="flex h-16 items-center justify-between gap-4 px-5 md:px-10">
-        <p className="font-display text-lg font-medium tracking-tight">ToolGap</p>
-        <nav aria-label="Primary" className="flex items-center gap-5 text-sm">
-          <Link href="/overview" className="text-muted hover:text-foreground">
-            Open dashboard
-          </Link>
-          <a
-            href={REPO_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="text-muted hover:text-foreground"
-          >
-            Source on GitHub
-          </a>
-        </nav>
-      </header>
-
-      <section className="relative isolate grid min-h-[100dvh] items-center gap-12 overflow-hidden px-5 pb-16 pt-8 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:px-10 md:pt-10 lg:gap-20">
+    <main id="main" className="page-grain relative flex flex-1 flex-col">
+      <div className="relative isolate min-h-[100dvh] overflow-hidden">
         <HeroCoastalVideo />
-        <div className="relative z-10 max-w-xl">
-          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
-            Agent Capability Intelligence for WebMCP
-          </p>
-          <h1 className="mt-4 font-display text-4xl font-medium leading-[1.08] tracking-tight md:text-5xl lg:text-6xl">
-            Your website learns what agents need next.
-          </h1>
-          <p className="mt-5 max-w-[38ch] text-base leading-relaxed text-muted">
-            ToolGap watches agent traffic and turns inefficient journeys into better
-            WebMCP capabilities.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Button onClick={() => void seedAndOpen()} disabled={seeding}>
-              {seeding ? "Loading demo data…" : "View demo with sample data"}
-            </Button>
-            <Link href="/store">
-              <Button variant="secondary">Open demo store</Button>
+        <HeroMotionField />
+
+        <header className="relative z-20 flex h-16 items-center justify-between gap-4 px-5 md:px-10 lg:px-16">
+          <p className="font-display text-lg font-medium tracking-tight">ToolGap</p>
+          <nav aria-label="Primary" className="flex items-center gap-5 text-sm">
+            <Link href="/overview" className="text-muted hover:text-foreground">
+              Open dashboard
             </Link>
+            <a
+              href={REPO_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="text-muted hover:text-foreground"
+            >
+              Source on GitHub
+            </a>
+          </nav>
+        </header>
+
+        <section className="relative z-10 grid min-h-[calc(100dvh-4rem)] items-start gap-10 px-5 pb-16 pt-6 md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] md:gap-8 md:px-10 md:pt-14 lg:gap-6 lg:px-16">
+          <div className="relative max-w-[34rem] md:pt-2">
+            <h1 className="font-serif text-[2.55rem] font-medium leading-[1.12] tracking-[-0.035em] text-balance text-foreground md:text-6xl lg:text-[4.15rem]">
+              Your website learns
+              <br className="hidden md:block" />{" "}
+              <em className="font-serif font-medium italic">what agents need next.</em>
+            </h1>
+            <p className="mt-6 max-w-[34ch] text-base leading-relaxed text-muted">
+              ToolGap watches agent traffic, names the friction, and recommends the missing
+              WebMCP capability.
+            </p>
+            <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3">
+              <Button
+                size="lg"
+                onClick={() => void seedAndOpen()}
+                disabled={seeding}
+                className="shadow-[0_0_0_1px_rgb(217_154_61_/_0.45),0_14px_40px_rgb(217_154_61_/_0.28)]"
+              >
+                {seeding ? "Loading demo data…" : "View demo with sample data"}
+              </Button>
+              <Link
+                href="/store"
+                className="text-sm text-muted underline-offset-4 hover:text-foreground hover:underline"
+              >
+                Open demo store
+              </Link>
+            </div>
           </div>
-        </div>
-        <div className="relative z-10 border-l border-border pl-6 md:pl-10">
-          <p className="font-mono text-[11px] uppercase tracking-wider text-muted">
-            Real agent traffic
+
+          <div className="relative md:mt-24 md:justify-self-end md:w-[min(100%,26.5rem)] lg:mt-32">
+            <div className="landing-glass p-5 md:p-6">
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
+                Observed journey
+              </p>
+              <div className="mt-3">
+                <SignalChainHero />
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section className="relative overflow-hidden border-t border-border px-5 py-20 md:px-10 md:py-28 lg:px-16">
+        <Image
+          src="/media/hero-coastal-ref-03-promenade.jpg"
+          alt=""
+          width={1920}
+          height={1280}
+          className="pointer-events-none absolute -right-[18%] bottom-[-20%] w-[62%] max-w-none object-cover opacity-[0.22] md:w-[46%]"
+        />
+        <div className="relative max-w-[38rem]">
+          <h2 className="font-serif text-3xl font-medium leading-[1.15] tracking-[-0.03em] md:text-5xl">
+            Your website adapts to agents.
+          </h2>
+          <p className="mt-6 max-w-[46ch] text-sm leading-relaxed text-muted">
+            Human review stays in the loop. Every published capability is a read-only template
+            someone simulated, edited, and approved. AI proposes. Human decides.
           </p>
-          <div className="mt-4">
-            <SignalChainHero />
-          </div>
         </div>
       </section>
 
-      <section className="border-t border-border px-5 py-16 md:px-10 md:py-24">
-        <ol className="mx-auto grid max-w-5xl gap-10 md:grid-cols-3">
-          <li>
-            <p className="font-mono text-xs text-accent">call</p>
-            <h2 className="mt-2 font-display text-2xl font-medium tracking-tight">
-              Agents use your tools
-            </h2>
-            <p className="mt-3 max-w-[36ch] text-sm leading-relaxed text-muted">
-              Fieldkit Market exposes WebMCP tools through navigator.modelContext. Every
-              agent call is typed telemetry.
-            </p>
-          </li>
-          <li className="md:border-l md:border-border md:pl-8">
-            <p className="font-mono text-xs text-accent">signal</p>
-            <h2 className="mt-2 font-display text-2xl font-medium tracking-tight">
-              ToolGap finds the gap
-            </h2>
-            <p className="mt-3 max-w-[36ch] text-sm leading-relaxed text-muted">
-              Calls become sessions and journeys. Detectors spot hand-built comparisons
-              and name the missing capability.
-            </p>
-          </li>
-          <li className="md:border-l md:border-border md:pl-8">
-            <p className="font-mono text-xs text-accent">capability</p>
-            <h2 className="mt-2 font-display text-2xl font-medium tracking-tight">
-              You publish the fix
-            </h2>
-            <p className="mt-3 max-w-[36ch] text-sm leading-relaxed text-muted">
-              Simulate a safe template, approve it, and the tool registers on WebMCP.
-              Impact is measured on recorded calls.
-            </p>
-          </li>
-        </ol>
-      </section>
-
-      <section className="border-t border-border px-5 py-16 md:grid md:grid-cols-[1.2fr_0.8fr] md:items-end md:gap-16 md:px-10 md:py-24">
-        <h2 className="max-w-[16ch] font-display text-3xl font-medium leading-tight tracking-tight md:text-5xl">
-          Instead of forcing agents to adapt to your website, your website adapts to
-          agents.
-        </h2>
-        <p className="mt-6 max-w-[42ch] text-sm leading-relaxed text-muted md:mt-0">
-          Human review stays in the loop. Every published capability is a read-only
-          template someone simulated, edited, and approved. AI proposes. Human decides.
-        </p>
-      </section>
-
-      <footer className="border-t border-border px-5 py-8 text-xs text-muted md:px-10">
-        Everything runs in your browser. Telemetry, gaps, and published capabilities live
-        in IndexedDB, so a fresh profile starts empty and the demo button rebuilds the
-        whole story.
+      <footer className="relative border-t border-border px-5 py-8 text-xs text-muted md:px-10 lg:px-16">
+        Everything runs in your browser. Telemetry, gaps, and published capabilities live in
+        IndexedDB, so a fresh profile starts empty and the demo button rebuilds the whole story.
       </footer>
     </main>
   );
