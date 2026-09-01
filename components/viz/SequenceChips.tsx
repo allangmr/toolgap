@@ -5,6 +5,8 @@ import { collapseSequence, signatureParts } from "./sequence";
 
 type ToolGlyph = "search" | "box" | "scale" | "cart" | "generic";
 
+const ENTRANCE = { duration: 0.32, ease: [0.22, 1, 0.36, 1] as const };
+
 function glyphForTool(name: string): ToolGlyph {
   const n = name.toLowerCase();
   if (n.includes("search") || n.includes("find") || n.includes("list")) return "search";
@@ -123,32 +125,20 @@ export function SequenceChips({
             <motion.li
               key={`${chip.name}-${i}`}
               className="inline-flex items-center gap-2"
-              initial={enableMotion ? { opacity: 0, y: 10, scale: 0.94 } : false}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
+              initial={enableMotion ? { opacity: 0, y: 8 } : false}
+              animate={{ opacity: 1, y: 0 }}
               transition={{
-                delay: enableMotion ? i * 0.07 : 0,
-                type: "spring",
-                stiffness: 380,
-                damping: 24,
+                delay: enableMotion ? i * 0.04 : 0,
+                ...ENTRANCE,
               }}
             >
               {i > 0 ? (
-                <motion.span
+                <span
                   aria-hidden="true"
-                  className={emphasize ? "text-accent" : "text-muted"}
-                  animate={
-                    enableMotion && emphasize
-                      ? { opacity: [0.35, 1, 0.35] }
-                      : undefined
-                  }
-                  transition={
-                    enableMotion && emphasize
-                      ? { duration: 1.8, repeat: Infinity, delay: i * 0.12 }
-                      : undefined
-                  }
+                  className={emphasize ? "text-accent/80" : "text-muted"}
                 >
                   →
-                </motion.span>
+                </span>
               ) : null}
               <span
                 className={`inline-flex items-center gap-2 rounded-2xl border px-3 py-2.5 transition-transform duration-200 hover:-translate-y-0.5 ${
@@ -183,7 +173,7 @@ export function SequenceChips({
         <motion.p
           initial={enableMotion ? { opacity: 0 } : false}
           animate={{ opacity: 1 }}
-          transition={{ delay: enableMotion ? 0.2 + chips.length * 0.05 : 0 }}
+          transition={{ delay: enableMotion ? 0.12 + chips.length * 0.03 : 0, ...ENTRANCE }}
           className={`mt-3 border-t border-dashed pt-2 text-sm ${
             emphasize ? "border-accent/40 text-accent" : "border-border text-muted"
           }`}

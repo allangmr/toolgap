@@ -161,6 +161,10 @@ textarea::placeholder {
   animation: trail-pulse 3.4s var(--ease-out) infinite;
 }
 
+.compare-stage {
+  contain: layout style paint;
+}
+
 .compare-grid {
   background-image:
     linear-gradient(rgb(217 119 47 / 0.05) 1px, transparent 1px),
@@ -178,37 +182,52 @@ textarea::placeholder {
   content: "";
   position: absolute;
   inset: 0;
+  will-change: transform;
   background: linear-gradient(
     90deg,
     transparent,
-    rgb(255 250 243 / 0.85),
+    rgb(255 250 243 / 0.7),
     transparent
   );
-  animation: compare-beam-travel-x 2.2s var(--ease-out) infinite;
+  animation: compare-beam-travel-x 3.6s linear infinite;
+}
+
+.compare-bridge-pulse {
+  animation: compare-bridge-pulse 2.8s ease-in-out infinite;
+  will-change: transform;
 }
 
 @keyframes compare-beam-travel-x {
   0% {
-    transform: translateX(-120%);
+    transform: translate3d(-120%, 0, 0);
   }
   100% {
-    transform: translateX(120%);
+    transform: translate3d(120%, 0, 0);
+  }
+}
+
+@keyframes compare-bridge-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
   }
 }
 
 .compare-scan {
-  animation: compare-scan-sweep 2.8s var(--ease-out) infinite;
+  animation: compare-scan-pulse 3.2s ease-in-out infinite;
+  will-change: opacity;
 }
 
-@keyframes compare-scan-sweep {
+@keyframes compare-scan-pulse {
   0%,
   100% {
-    opacity: 0.15;
-    transform: translateY(0);
+    opacity: 0.25;
   }
   50% {
-    opacity: 0.9;
-    transform: translateY(6px);
+    opacity: 0.85;
   }
 }
 
@@ -237,7 +256,8 @@ textarea::placeholder {
 
 @media (prefers-reduced-motion: reduce) {
   .compare-beam::after,
-  .compare-scan {
+  .compare-scan,
+  .compare-bridge-pulse {
     animation: none;
   }
 }

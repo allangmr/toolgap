@@ -5,6 +5,8 @@ import { StatusBadge } from "@/components/ui";
 import { SequenceChips } from "./SequenceChips";
 import { CountUp } from "./CountUp";
 
+const ENTRANCE = { duration: 0.38, ease: [0.22, 1, 0.36, 1] as const };
+
 function formatDeltaCalls(before: number, after: number): string {
   const delta = after - before;
   if (delta === 0) return "0";
@@ -55,9 +57,9 @@ export function GapCollapse({
       />
 
       <motion.div
-        initial={reduce ? false : { opacity: 0, y: 12 }}
+        initial={reduce ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        transition={ENTRANCE}
         className="relative flex flex-wrap items-end justify-between gap-4 border-b border-border/80 pb-5"
       >
         <div>
@@ -80,14 +82,14 @@ export function GapCollapse({
             label="Load"
             value={callPct}
             tone={improved ? "success" : "neutral"}
-            delay={0.08}
+            delay={0.05}
             reduce={Boolean(reduce)}
           />
           <ImpactPill
             label="Duration"
             value={`${durationDelta}ms`}
             tone={proposedDurationMs <= currentDurationMs ? "success" : "warning"}
-            delay={0.16}
+            delay={0.1}
             reduce={Boolean(reduce)}
           />
         </div>
@@ -105,7 +107,7 @@ export function GapCollapse({
           caption="Multiple calls. More friction."
           emphasize={false}
           dashed
-          delay={0.05}
+          delay={0.04}
           reduce={Boolean(reduce)}
         />
 
@@ -125,7 +127,7 @@ export function GapCollapse({
           caption="One capability. Clear intent."
           emphasize
           dashed={false}
-          delay={0.18}
+          delay={0.12}
           reduce={Boolean(reduce)}
         />
       </div>
@@ -155,9 +157,9 @@ function ImpactPill({
 
   return (
     <motion.div
-      initial={reduce ? false : { opacity: 0, scale: 0.92 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay, type: "spring", stiffness: 320, damping: 22 }}
+      initial={reduce ? false : { opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ ...ENTRANCE, delay }}
       className={`rounded-2xl border px-3.5 py-2 ${toneClass}`}
     >
       <p className="font-mono text-[10px] tracking-[0.14em] uppercase opacity-80">{label}</p>
@@ -170,32 +172,19 @@ function CollapseBridge({ reduce, label }: { reduce: boolean; label: string }) {
   return (
     <div className="compare-bridge relative flex items-center justify-center self-center py-1 lg:min-h-[12rem] lg:px-1">
       <motion.div
-        initial={reduce ? false : { opacity: 0, scale: 0.85 }}
+        initial={reduce ? false : { opacity: 0, scale: 0.94 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ ...ENTRANCE, delay: 0.08 }}
         className="flex w-full flex-col items-center gap-2"
       >
         <div className="flex w-full items-center gap-2 lg:w-auto lg:min-w-[4.5rem]">
           <span
             aria-hidden="true"
-            className="compare-beam h-px flex-1 bg-gradient-to-r from-transparent via-accent/70 to-transparent lg:w-6 lg:flex-none"
+            className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent lg:w-6 lg:flex-none"
           />
-          <motion.span
+          <span
             aria-hidden="true"
-            animate={
-              reduce
-                ? undefined
-                : {
-                    scale: [1, 1.08, 1],
-                    boxShadow: [
-                      "0 0 0 rgb(217 119 47 / 0)",
-                      "0 0 18px rgb(217 119 47 / 0.35)",
-                      "0 0 0 rgb(217 119 47 / 0)",
-                    ],
-                  }
-            }
-            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent text-accent-ink"
+            className={`compare-bridge-pulse flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent text-accent-ink shadow-[0_0_0_1px_rgb(217_119_47_/_0.12),0_8px_20px_rgb(217_119_47_/_0.18)] ${reduce ? "" : ""}`}
           >
             <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true">
               <path
@@ -206,10 +195,10 @@ function CollapseBridge({ reduce, label }: { reduce: boolean; label: string }) {
                 strokeLinejoin="round"
               />
             </svg>
-          </motion.span>
+          </span>
           <span
             aria-hidden="true"
-            className="compare-beam h-px flex-1 bg-gradient-to-r from-transparent via-accent/70 to-transparent lg:w-6 lg:flex-none"
+            className="compare-beam h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent lg:w-6 lg:flex-none"
           />
         </div>
         <span className="text-center font-mono text-[10px] tracking-[0.14em] text-accent uppercase">
@@ -251,13 +240,12 @@ function FlowPanel({
 
   return (
     <motion.section
-      initial={reduce ? false : { opacity: 0, y: 18 }}
+      initial={reduce ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={reduce ? undefined : { y: -2 }}
+      transition={{ ...ENTRANCE, delay }}
       className={
         isNext
-          ? "compare-panel-next relative min-w-0 overflow-hidden rounded-2xl border border-accent/40 bg-accent-subtle/50 p-5 shadow-[0_12px_40px_rgb(217_119_47_/_0.14)]"
+          ? "compare-panel-next relative min-w-0 overflow-hidden rounded-2xl border border-accent/40 bg-accent-subtle/50 p-5 shadow-[0_12px_40px_rgb(217_119_47_/_0.14)] transition-transform duration-200 hover:-translate-y-0.5"
           : "relative min-w-0 overflow-hidden rounded-2xl border border-border/90 bg-surface/80 p-5 opacity-95"
       }
       aria-label={isNext ? "New estimated journey" : "Previous measured journey"}
