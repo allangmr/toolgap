@@ -5,6 +5,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { recommendationRepo } from "@/lib/db/repositories";
 import { Badge, EmptyState, StatusBadge, Table, Td, Tr } from "@/components/ui";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { workflowStepForRecommendationStatus } from "@/lib/gaps/workflow-steps";
 import { formatTimestamp } from "@/lib/shared";
 
 export default function RecommendationsPage() {
@@ -14,7 +15,7 @@ export default function RecommendationsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Recommendations"
-        description="Structured capability proposals derived from gaps."
+        description="Cross-gap index of capability proposals. Open a gap to continue the workflow (evidence through publish)."
       />
 
       {recommendations.length === 0 ? (
@@ -27,7 +28,9 @@ export default function RecommendationsPage() {
           caption="Recommendations"
           headers={["Tool", "Template", "Status", "Created by", "Updated", "Gap"]}
         >
-          {recommendations.map((r) => (
+          {recommendations.map((r) => {
+            const step = workflowStepForRecommendationStatus(r.status);
+            return (
             <Tr key={r.id}>
               <Td className="font-mono">{r.proposedToolName}</Td>
               <Td>{r.templateType}</Td>
@@ -41,12 +44,16 @@ export default function RecommendationsPage() {
               </Td>
               <Td className="font-mono text-xs">{formatTimestamp(r.updatedAt)}</Td>
               <Td>
-                <Link href={`/gaps/${r.gapId}`} className="text-accent hover:underline">
-                  Open gap
+                <Link
+                  href={`/gaps/${r.gapId}?step=${step}`}
+                  className="text-accent hover:underline"
+                >
+                  Continue workflow
                 </Link>
               </Td>
             </Tr>
-          ))}
+            );
+          })}
         </Table>
       )}
     </div>

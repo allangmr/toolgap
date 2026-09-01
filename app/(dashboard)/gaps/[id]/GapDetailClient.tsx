@@ -18,9 +18,8 @@ import {
   Card,
   Dialog,
   StatusBadge,
-  TabPanel,
-  Tabs,
 } from "@/components/ui";
+import { GapWorkflowStepper } from "@/components/dashboard/GapWorkflowStepper";
 import { JourneySignature } from "@/components/dashboard/JourneySignature";
 import { RecommendationConfigForm } from "@/components/dashboard/RecommendationConfigForm";
 import { EvidencePulse } from "@/components/viz/EvidencePulse";
@@ -34,6 +33,14 @@ import {
 import type { Recommendation } from "@/lib/shared/types";
 import { simulate } from "@/lib/recommendations/simulation";
 import { dismissGap, transitionGap } from "@/lib/gaps/engine";
+import {
+  WORKFLOW_STEPS,
+  nextStepAfter,
+  parseWorkflowStepParam,
+  resolveWorkflowStep,
+  stepState,
+  type WorkflowStep,
+} from "@/lib/gaps/workflow-steps";
 import { approveRecommendation, publishRecommendation } from "@/lib/publishing/publish";
 import { formatTimestamp, round } from "@/lib/shared";
 import {
@@ -61,15 +68,14 @@ export default function GapDetailClient({ id }: { id: string }) {
   const published = useLiveQuery(() => publishedRepo.all(), []) ?? [];
   const searchParams = useSearchParams();
   const router = useRouter();
-  const tab = searchParams.get("tab") ?? "evidence";
   const analysis = useAnalysisStatus();
 
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [issues, setIssues] = useState<string[]>([]);
-  const [publishOpen, setPublishOpen] = useState(false);
   const [dismissOpen, setDismissOpen] = useState(false);
   const [dismissReason, setDismissReason] = useState("");
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const supportingJourneys = useMemo(() => {
     if (!gap) return [];
@@ -81,10 +87,33 @@ export default function GapDetailClient({ id }: { id: string }) {
     return signals.filter((s) => gap.signalIds.includes(s.id));
   }, [gap, signals]);
 
+  const requestedStep = parseWorkflowStepParam(
+    searchParams.get("step"),
+    searchParams.get("tab"),
+  );
+
+  const activeStep: WorkflowStep = gap
+    ? resolveWorkflowStep(gap, recommendation, simulation, requestedStep)
+    : "evidence";
+
+  const stepStates = useMemo(() => {
+    if (!gap) {
+      return Object.fromEntries(
+        WORKFLOW_STEPS.map((s) => [s, "blocked"]),
+      ) as Record<WorkflowStep, ReturnType<typeof stepState>>;
+    }
+    return Object.fromEntries(
+      WORKFLOW_STEPS.map((s) => [
+        s,
+        stepState(s, activeStep, gap, recommendation, simulation),
+      ]),
+    ) as Record<WorkflowStep, ReturnType<typeof stepState>>;
+  }, [activeStep, gap, recommendation, simulation]);
+
   if (!gap) return <p className="text-muted">Gap not found.</p>;
 
-  function setTab(next: string) {
-    router.push(`/gaps/${id}?tab=${next}`);
+  function setStep(next: WorkflowStep) {
+    router.push(`/gaps/${id}?step=${next}`);
   }
 
   async function onBuildRecommendation() {
@@ -115,7 +144,7 @@ export default function GapDetailClient({ id }: { id: string }) {
         ),
       );
       setMessage("Recommendation created.");
-      setTab("recommendation");
+      setStep(nextStepAfter("build"));
     } catch (e) {
       setMessage(e instanceof Error ? e.message : String(e));
     } finally {
@@ -155,9 +184,7 @@ export default function GapDetailClient({ id }: { id: string }) {
         updatedAt: Date.now(),
       };
       await recommendationRepo.put(rebuilt);
-
       await simulationRepo.deleteByRecommendation(recommendation.id);
-
       await gapRepo.put(
         transitionGap(
           { ...gap, recommendationId: rebuilt.id },
@@ -165,7 +192,7 @@ export default function GapDetailClient({ id }: { id: string }) {
           "human",
         ),
       );
-      setMessage("Configuration saved. Simulate and approve again before publishing.");
+      setMessage("Configuration saved. Run simulation to compare impact.");
     } catch (e) {
       setMessage(e instanceof Error ? e.message : String(e));
     } finally {
@@ -186,7 +213,7 @@ export default function GapDetailClient({ id }: { id: string }) {
       });
       await gapRepo.put(transitionGap(gap!, "simulated", "human"));
       setMessage("Simulation complete.");
-      setTab("simulation");
+      setStep(nextStepAfter("simulate"));
     } catch (e) {
       setMessage(e instanceof Error ? e.message : String(e));
     } finally {
@@ -200,6 +227,7 @@ export default function GapDetailClient({ id }: { id: string }) {
     try {
       await approveRecommendation(recommendation.id);
       setMessage("Approved. Ready to publish.");
+      setStep(nextStepAfter("approve"));
     } catch (e) {
       setMessage(e instanceof Error ? e.message : String(e));
     } finally {
@@ -216,8 +244,8 @@ export default function GapDetailClient({ id }: { id: string }) {
         rec = await approveRecommendation(rec.id);
       }
       const cap = await publishRecommendation(rec.id);
-      setPublishOpen(false);
       setMessage(`Published ${cap.toolName} v${cap.version} on the demo store.`);
+      setStep(nextStepAfter("publish"));
       await analysis.refresh();
     } catch (e) {
       setMessage(e instanceof Error ? e.message : String(e));
@@ -248,6 +276,70 @@ export default function GapDetailClient({ id }: { id: string }) {
 
   const dominantSignature = supportingJourneys[0]?.signature;
   const canBuild = templateForGapType(gap.type) !== null;
+  const isResolved = gap.status === "resolved" || gap.status === "published";
+
+  function renderPrimaryAction() {
+    switch (activeStep) {
+      case "evidence":
+        if (!recommendation && canBuild) {
+          return (
+            <Button onClick={() => void onBuildRecommendation()} disabled={busy}>
+              Build recommendation
+            </Button>
+          );
+        }
+        return null;
+      case "propose":
+        if (!recommendation && canBuild) {
+          return (
+            <Button onClick={() => void onBuildRecommendation()} disabled={busy}>
+              Build recommendation
+            </Button>
+          );
+        }
+        if (recommendation && !simulation) {
+          return (
+            <Button onClick={() => void onSimulate()} disabled={busy}>
+              Run simulation
+            </Button>
+          );
+        }
+        return null;
+      case "compare":
+        if (
+          recommendation &&
+          recommendation.status !== "approved" &&
+          recommendation.status !== "published"
+        ) {
+          return (
+            <Button onClick={() => void onApprove()} disabled={busy}>
+              Approve for publish
+            </Button>
+          );
+        }
+        return null;
+      case "approve":
+        if (recommendation && recommendation.status === "approved") {
+          return (
+            <Button onClick={() => setStep("publish")} disabled={busy}>
+              Continue to publish
+            </Button>
+          );
+        }
+        return null;
+      case "publish":
+        if (recommendation && !isResolved) {
+          return (
+            <Button onClick={() => void onPublish()} disabled={busy}>
+              Confirm publish
+            </Button>
+          );
+        }
+        return null;
+      default:
+        return null;
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -266,11 +358,17 @@ export default function GapDetailClient({ id }: { id: string }) {
           </Badge>
           <Badge tone="neutral">confidence {round(gap.confidence, 2)}</Badge>
         </div>
-        {gap.status === "resolved" && gap.resolvedByCapabilityId ? (
-          <p className="mt-2 text-sm text-muted">
-            Resolved by publishing capability {gap.resolvedByCapabilityId.slice(0, 8)}
-            {gap.resolvedAt ? ` at ${formatTimestamp(gap.resolvedAt)}` : ""}.
-          </p>
+        {isResolved && gap.resolvedByCapabilityId ? (
+          <div className="mt-4 rounded-md border border-success/30 bg-success-subtle/50 p-4">
+            <p className="text-sm">
+              Resolved by publishing capability{" "}
+              <span className="font-mono">{gap.resolvedByCapabilityId.slice(0, 8)}</span>
+              {gap.resolvedAt ? ` at ${formatTimestamp(gap.resolvedAt)}` : ""}.
+            </p>
+            <Link href="/published" className="mt-2 inline-block text-sm text-accent hover:underline">
+              View published capabilities
+            </Link>
+          </div>
         ) : null}
       </div>
 
@@ -308,34 +406,19 @@ export default function GapDetailClient({ id }: { id: string }) {
         <ConfidenceBand value={gap.confidence} />
       </div>
 
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Gap actions">
-        {!recommendation && canBuild ? (
-          <Button onClick={() => void onBuildRecommendation()} disabled={busy}>
-            Build recommendation
-          </Button>
-        ) : null}
-        {recommendation && !simulation ? (
-          <Button onClick={() => void onSimulate()} disabled={busy}>
-            Simulate
-          </Button>
-        ) : null}
-        {recommendation &&
-        recommendation.status !== "approved" &&
-        recommendation.status !== "published" ? (
-          <Button variant="secondary" onClick={() => void onApprove()} disabled={busy}>
-            Approve
-          </Button>
-        ) : null}
-        {recommendation &&
-        (recommendation.status === "approved" ||
-          recommendation.status === "simulated") ? (
-          <Button onClick={() => setPublishOpen(true)} disabled={busy}>
-            Publish…
-          </Button>
-        ) : null}
-        {gap.status !== "dismissed" &&
-        gap.status !== "published" &&
-        gap.status !== "resolved" ? (
+      <GapWorkflowStepper
+        activeStep={activeStep}
+        stepStates={stepStates}
+        onStepChange={setStep}
+      />
+
+      <div
+        className="flex flex-wrap items-center gap-2"
+        role="group"
+        aria-label="Workflow action"
+      >
+        {renderPrimaryAction()}
+        {gap.status !== "dismissed" && !isResolved ? (
           <Button variant="ghost" onClick={() => setDismissOpen(true)} disabled={busy}>
             Dismiss…
           </Button>
@@ -344,23 +427,12 @@ export default function GapDetailClient({ id }: { id: string }) {
 
       <p className="text-sm text-muted" aria-live="polite">
         {message}
-        {!message && !recommendation && !canBuild
+        {!message && !recommendation && !canBuild && activeStep === "evidence"
           ? `No publishable template for ${gap.type} gaps. Dismiss if this is not actionable.`
           : null}
       </p>
 
-      <Tabs
-        tabs={[
-          { id: "evidence", label: "Evidence" },
-          { id: "recommendation", label: "Recommendation" },
-          { id: "simulation", label: "Simulation" },
-          { id: "history", label: "History" },
-        ]}
-        active={tab}
-        onChange={setTab}
-      />
-
-      <TabPanel id="evidence" active={tab}>
+      {activeStep === "evidence" ? (
         <div className="grid gap-4 lg:grid-cols-2">
           <Card as="section">
             <h2 className="font-display text-lg font-medium">Supporting evidence</h2>
@@ -411,13 +483,13 @@ export default function GapDetailClient({ id }: { id: string }) {
             )}
           </Card>
         </div>
-      </TabPanel>
+      ) : null}
 
-      <TabPanel id="recommendation" active={tab}>
-        {!recommendation ? (
+      {activeStep === "propose" ? (
+        !recommendation ? (
           <p className="text-sm text-muted">
             {canBuild
-              ? "No recommendation yet. Build one from the actions above."
+              ? "No recommendation yet. Build one from the Evidence step."
               : `No publishable template for ${gap.type} gaps.`}
           </p>
         ) : (
@@ -449,9 +521,6 @@ export default function GapDetailClient({ id }: { id: string }) {
                 <pre className="mt-1 overflow-x-auto rounded bg-surface-muted p-3 text-xs">
                   {JSON.stringify(recommendation.templateConfig, null, 2)}
                 </pre>
-                <p className="mt-1 text-xs text-muted">
-                  Published capabilities are no longer editable here.
-                </p>
               </div>
             ) : (
               <RecommendationConfigForm
@@ -470,18 +539,14 @@ export default function GapDetailClient({ id }: { id: string }) {
                 ))}
               </ul>
             </div>
-            <p className="text-sm text-muted">
-              Estimated call reduction: {recommendation.estimatedBenefit.callReduction}{" "}
-              fewer calls per affected journey. See the Simulation tab for durations.
-            </p>
           </Card>
-        )}
-      </TabPanel>
+        )
+      ) : null}
 
-      <TabPanel id="simulation" active={tab}>
-        {!simulation ? (
+      {activeStep === "compare" ? (
+        !simulation ? (
           <p className="text-sm text-muted">
-            Run a simulation to compare current vs proposed journeys.
+            Run a simulation from the Propose step to compare current vs proposed journeys.
           </p>
         ) : (
           <div className="space-y-6">
@@ -505,66 +570,96 @@ export default function GapDetailClient({ id }: { id: string }) {
               <p className="mt-3 text-sm">
                 Affected sessions (measured): {simulation.affectedSessions}
               </p>
-              <p className="text-sm text-muted">
-                Completion improvement is not quantified numerically in MVP.
-              </p>
             </div>
           </div>
-        )}
-      </TabPanel>
+        )
+      ) : null}
 
-      <TabPanel id="history" active={tab}>
-        <ol className="space-y-2">
-          {gap.statusHistory.map((h, i) => (
-            <li key={`${h.at}-${i}`} className="flex gap-3 text-sm">
-              <StatusBadge status={h.status} />
-              <span>{formatTimestamp(h.at)}</span>
-              <span className="text-muted">by {h.by}</span>
-              {h.reason ? <span className="text-muted">- {h.reason}</span> : null}
-            </li>
-          ))}
-        </ol>
-      </TabPanel>
-
-      <Dialog
-        open={publishOpen}
-        title="Publish WebMCP capability"
-        onClose={() => setPublishOpen(false)}
-        actions={
-          <>
-            <Button variant="secondary" onClick={() => setPublishOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={() => void onPublish()} disabled={busy}>
-              Confirm publish
-            </Button>
-          </>
-        }
-      >
-        {recommendation ? (
-          <div className="space-y-3 text-sm">
-            <p>
-              This will register a <strong>dynamic</strong> WebMCP tool on the{" "}
-              <strong>demo store</strong> surface.
-            </p>
-            <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-              <dt className="text-muted">Name</dt>
+      {activeStep === "approve" ? (
+        <Card as="section" className="space-y-4">
+          <h2 className="font-display text-lg font-medium">Human approval</h2>
+          <p className="text-sm text-muted">
+            AI proposes. Human decides. Every published capability is a read-only template
+            someone simulated, edited, and approved.
+          </p>
+          {recommendation ? (
+            <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
+              <dt className="text-muted">Tool</dt>
               <dd className="font-mono">{recommendation.proposedToolName}</dd>
               <dt className="text-muted">Template</dt>
               <dd>{recommendation.templateType}</dd>
-              <dt className="text-muted">Description</dt>
-              <dd>{recommendation.description}</dd>
+              <dt className="text-muted">Status</dt>
+              <dd>
+                <StatusBadge status={recommendation.status} />
+              </dd>
             </dl>
-            <pre className="max-h-48 overflow-auto rounded bg-surface-muted p-2 text-xs">
-              {JSON.stringify(recommendation.inputSchemaJson, null, 2)}
-            </pre>
-            <p className="text-muted">
-              No arbitrary code will execute. The tool is instantiated from a safe
-              capability template over existing store services.
+          ) : null}
+          {simulation ? (
+            <p className="text-sm">
+              Estimated {simulation.proposed.calls} calls vs {simulation.current.calls} today
+              per affected journey.
             </p>
-          </div>
+          ) : null}
+        </Card>
+      ) : null}
+
+      {activeStep === "publish" ? (
+        <Card as="section" className="space-y-4">
+          <h2 className="font-display text-lg font-medium">Publish WebMCP capability</h2>
+          {isResolved ? (
+            <p className="text-sm text-muted">
+              This gap is resolved. The dynamic tool is registered on the demo store.
+            </p>
+          ) : recommendation ? (
+            <>
+              <p className="text-sm">
+                This will register a <strong>dynamic</strong> WebMCP tool on the{" "}
+                <strong>demo store</strong> surface.
+              </p>
+              <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+                <dt className="text-muted">Name</dt>
+                <dd className="font-mono">{recommendation.proposedToolName}</dd>
+                <dt className="text-muted">Template</dt>
+                <dd>{recommendation.templateType}</dd>
+                <dt className="text-muted">Description</dt>
+                <dd>{recommendation.description}</dd>
+              </dl>
+              <pre className="max-h-48 overflow-auto rounded bg-surface-muted p-2 text-xs">
+                {JSON.stringify(recommendation.inputSchemaJson, null, 2)}
+              </pre>
+              <p className="text-sm text-muted">
+                No arbitrary code will execute. The tool is instantiated from a safe
+                capability template over existing store services.
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-muted">Complete prior steps before publishing.</p>
+          )}
+        </Card>
+      ) : null}
+
+      <div className="border-t border-border pt-4">
+        <button
+          type="button"
+          className="text-sm font-medium text-accent hover:underline"
+          aria-expanded={historyOpen}
+          onClick={() => setHistoryOpen((open) => !open)}
+        >
+          {historyOpen ? "Hide status history" : "View status history"}
+        </button>
+        {historyOpen ? (
+          <ol className="mt-3 space-y-2">
+            {gap.statusHistory.map((h, i) => (
+              <li key={`${h.at}-${i}`} className="flex flex-wrap gap-3 text-sm">
+                <StatusBadge status={h.status} />
+                <span>{formatTimestamp(h.at)}</span>
+                <span className="text-muted">by {h.by}</span>
+                {h.reason ? <span className="text-muted">- {h.reason}</span> : null}
+              </li>
+            ))}
+          </ol>
         ) : null}
-      </Dialog>
+      </div>
 
       <Dialog
         open={dismissOpen}
