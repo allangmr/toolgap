@@ -93,19 +93,18 @@ describe("critical UI flows", () => {
     await user.click(screen.getByRole("button", { name: "Build recommendation" }));
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Simulate" })).toBeEnabled();
+      expect(screen.getByRole("button", { name: "Run simulation" })).toBeEnabled();
     });
-    await user.click(screen.getByRole("button", { name: "Simulate" }));
+    await user.click(screen.getByRole("button", { name: "Run simulation" }));
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Approve" })).toBeEnabled();
+      expect(screen.getByRole("button", { name: "Approve for publish" })).toBeEnabled();
     });
-    await user.click(screen.getByRole("button", { name: "Approve" }));
+    await user.click(screen.getByRole("button", { name: "Approve for publish" }));
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Publish…" })).toBeEnabled();
+      expect(screen.getByRole("button", { name: "Confirm publish" })).toBeEnabled();
     });
-    await user.click(screen.getByRole("button", { name: "Publish…" }));
     await user.click(screen.getByRole("button", { name: "Confirm publish" }));
 
     await waitFor(async () => {

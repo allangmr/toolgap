@@ -11,9 +11,7 @@ import { frictionRepo, journeyRepo } from "@/lib/db/repositories";
 
 const NAV = [
   { href: "/overview", label: "Overview" },
-  { href: "/sessions", label: "Sessions" },
-  { href: "/journeys", label: "Journeys" },
-  { href: "/tools", label: "Tools" },
+  { href: "/traffic", label: "Traffic" },
   { href: "/gaps", label: "Capability Gaps" },
   { href: "/recommendations", label: "Recommendations" },
   { href: "/published", label: "Published" },

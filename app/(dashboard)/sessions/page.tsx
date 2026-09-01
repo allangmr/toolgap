@@ -1,12 +1,5 @@
-"use client";
-
-import { Suspense } from "react";
-import SessionsPageClient from "./SessionsPageClient";
+import { redirect } from "next/navigation";
 
 export default function SessionsPage() {
-  return (
-    <Suspense fallback={<p className="text-muted">Loading sessions…</p>}>
-      <SessionsPageClient />
-    </Suspense>
-  );
+  redirect("/traffic?tab=sessions");
 }
