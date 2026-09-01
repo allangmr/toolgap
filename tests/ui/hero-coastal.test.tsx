@@ -29,8 +29,8 @@ describe("HeroCoastalVideo", () => {
     const { container } = render(<HeroCoastalVideo />);
     const video = container.querySelector("video");
 
-    expect(video).toBeTruthy();
-    expect(video).toHaveAttribute("muted");
+    expect(video).toBeInstanceOf(HTMLVideoElement);
+    expect((video as HTMLVideoElement).muted).toBe(true);
     expect(video).toHaveAttribute("loop");
     expect(video).toHaveAttribute("poster", HERO_POSTER_SRC);
     expect(video?.querySelector("source")).toHaveAttribute("src", HERO_VIDEO_SRC);
