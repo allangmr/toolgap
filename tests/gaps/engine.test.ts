@@ -106,7 +106,7 @@ describe("stale-evidence flag", () => {
     };
   }
 
-  it("keeps the flag while all signals predate the publish", () => {
+  it("keeps the flag while all supporting journeys predate the publish", () => {
     const journeys = [journey("j1", "s1"), journey("j2", "s2"), journey("j3", "s3")];
     const signals = [
       signal("f1", "s1", "j1"),
@@ -119,19 +119,34 @@ describe("stale-evidence flag", () => {
     expect(merged[0]!.staleEvidenceAt).toBe(100);
   });
 
-  it("clears the flag when fresh post-publish evidence arrives", () => {
+  it("keeps the flag when re-analysis re-derives signals from old journeys", () => {
+    // Journeys ended before the publish (endedAt 10 < staleEvidenceAt 100),
+    // but re-derived signals carry a fresh detectedAt. That is not new
+    // agent behavior and must not clear the flag.
+    const journeys = [journey("j1", "s1"), journey("j2", "s2"), journey("j3", "s3")];
+    const signals = [
+      { ...signal("f1", "s1", "j1"), detectedAt: 300 },
+      { ...signal("f2", "s2", "j2"), detectedAt: 300 },
+      { ...signal("f3", "s3", "j3"), detectedAt: 300 },
+    ];
+    const merged = mergeSignalsIntoGaps(signals, journeys, [staleGap()]);
+    expect(merged).toHaveLength(1);
+    expect(merged[0]!.staleEvidenceCapabilityId).toBe("cap1");
+  });
+
+  it("clears the flag when a post-publish journey shows the same friction", () => {
+    const freshJourney = { ...journey("j4", "s4"), startedAt: 150, endedAt: 250 };
     const journeys = [
       journey("j1", "s1"),
       journey("j2", "s2"),
       journey("j3", "s3"),
-      journey("j4", "s4"),
+      freshJourney,
     ];
-    const fresh = { ...signal("f4", "s4", "j4"), detectedAt: 200 };
     const signals = [
       signal("f1", "s1", "j1"),
       signal("f2", "s2", "j2"),
       signal("f3", "s3", "j3"),
-      fresh,
+      { ...signal("f4", "s4", "j4"), detectedAt: 260 },
     ];
     const merged = mergeSignalsIntoGaps(signals, journeys, [staleGap()]);
     expect(merged).toHaveLength(1);
