@@ -163,7 +163,7 @@ export default function OverviewPage() {
           </section>
 
           {topGap ? (
-            <section className="border border-accent/35 bg-accent-subtle/30 p-5 md:p-7">
+            <section className="rounded-md border border-accent/35 bg-accent-subtle/40 p-5 md:p-7">
               <p className="font-mono text-[11px] uppercase tracking-wider text-accent">
                 Highest opportunity
               </p>

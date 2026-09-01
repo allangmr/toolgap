@@ -43,7 +43,7 @@ export function Dialog({
     <dialog
       ref={dialogRef as RefObject<HTMLDialogElement>}
       aria-labelledby={titleId}
-      className="w-[min(560px,calc(100vw-2rem))] rounded-[4px] border border-border bg-surface p-0 text-foreground shadow-[var(--shadow)] backdrop:bg-[#0c0e12]/70"
+      className="w-[min(560px,calc(100vw-2rem))] rounded-md border border-border bg-surface p-0 text-foreground shadow-[var(--shadow)] backdrop:bg-foreground/45"
       onClick={(e) => {
         if (e.target === dialogRef.current) onClose();
       }}
@@ -55,7 +55,7 @@ export function Dialog({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-[4px] px-2 py-1 text-muted hover:bg-surface-muted hover:text-foreground"
+          className="rounded-sm px-2 py-1 text-muted hover:bg-surface-muted hover:text-foreground"
           aria-label="Close dialog"
         >
           ✕

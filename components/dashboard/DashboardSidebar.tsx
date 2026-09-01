@@ -53,7 +53,7 @@ export function DashboardSidebar() {
               <li key={item.href} className="shrink-0">
                 <Link
                   href={item.href}
-                  className={`block rounded-[4px] px-3 py-2 text-sm font-medium whitespace-nowrap ${
+                  className={`block rounded-sm px-3 py-2 text-sm font-medium whitespace-nowrap ${
                     active
                       ? "bg-accent-subtle text-accent"
                       : "text-muted hover:bg-surface-muted hover:text-foreground"

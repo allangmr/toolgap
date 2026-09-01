@@ -8,7 +8,7 @@ import { round } from "@/lib/shared";
 export function GapCard({ gap }: { gap: CapabilityGap }) {
   const observational = templateForGapType(gap.type) === null;
   return (
-    <article className="border border-border bg-surface p-4 transition-colors hover:border-accent/50">
+    <article className="rounded-md border border-border bg-surface p-4 shadow-[var(--shadow-card)] transition-colors hover:border-accent/50">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-display text-lg font-medium">{gap.title}</h2>

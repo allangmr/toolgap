@@ -1,29 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  color-scheme: dark;
-  --background: #0c0e12;
-  --foreground: #eceef2;
-  --surface: #14171d;
-  --surface-muted: #1b1f27;
-  --surface-raised: #222733;
-  --border: #2c3342;
-  --border-strong: #3d4658;
-  --accent: #d99a3d;
-  --accent-hover: #e8ad55;
-  --accent-subtle: #2a2114;
-  --accent-ink: #141208;
-  --danger: #d46a5c;
-  --danger-subtle: #2c1714;
-  --warning: #d99a3d;
-  --warning-subtle: #2a2114;
-  --success: #6f9e78;
-  --success-subtle: #152018;
-  --info: #8b93a7;
-  --info-subtle: #1a1d24;
-  --muted: #9aa4b5;
-  --radius: 4px;
-  --shadow: 0 12px 40px rgb(8 10 14 / 0.45);
+  color-scheme: light;
+  --background: #f6f4ef;
+  --foreground: #26211a;
+  --surface: #fcfbf8;
+  --surface-muted: #f0ede5;
+  --surface-raised: #ffffff;
+  --border: #e5e0d3;
+  --border-strong: #cfc7b4;
+  --accent: #9a3412;
+  --accent-hover: #7c2d12;
+  --accent-subtle: #f7e8d4;
+  --accent-ink: #fdf9f1;
+  --danger: #9f1239;
+  --danger-subtle: #f8e3de;
+  --warning: #854d0e;
+  --warning-subtle: #f5ecd2;
+  --success: #166534;
+  --success-subtle: #e3efe4;
+  --info: #44403c;
+  --info-subtle: #eaeaec;
+  --muted: #57534e;
+  --radius: 8px;
+  --radius-card: 12px;
+  --radius-frame: 16px;
+  --shadow: 0 16px 40px rgb(93 76 48 / 0.14);
+  --shadow-card: 0 1px 2px rgb(93 76 48 / 0.05), 0 8px 24px rgb(93 76 48 / 0.06);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --duration: 220ms;
   --z-nav: 40;
@@ -55,8 +58,9 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-space-grotesk);
-  --font-serif: var(--font-newsreader);
   --radius-sm: var(--radius);
+  --radius-md: var(--radius-card);
+  --radius-lg: var(--radius-frame);
 }
 
 html {
@@ -89,13 +93,31 @@ body {
   top: 1rem;
 }
 
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]),
+select,
+textarea {
+  color: var(--foreground);
+  color-scheme: light;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
 .lab-input {
   width: 100%;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius);
-  background: var(--surface-muted);
+  background: var(--surface-raised);
   color: var(--foreground);
   padding: 0.4rem 0.65rem;
+}
+
+.lab-input::placeholder {
+  color: var(--muted);
+  opacity: 1;
 }
 
 .lab-input:focus {
@@ -109,26 +131,20 @@ body {
   inset: 0;
   z-index: var(--z-grain);
   pointer-events: none;
-  opacity: 0.07;
+  opacity: 0.04;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.55'/></svg>");
 }
 
 .landing-glass {
-  border: 1px solid rgb(255 255 255 / 0.12);
+  border: 1px solid rgb(255 255 255 / 0.65);
+  border-radius: var(--radius-card);
   background:
-    linear-gradient(165deg, rgb(255 255 255 / 0.08), rgb(12 14 18 / 0.28)),
-    rgb(12 14 18 / 0.52);
-  backdrop-filter: blur(20px) saturate(150%);
+    linear-gradient(165deg, rgb(255 255 255 / 0.85), rgb(252 251 248 / 0.55)),
+    rgb(252 251 248 / 0.7);
+  backdrop-filter: blur(18px) saturate(140%);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.18),
-    inset 0 -40px 80px rgb(217 154 61 / 0.06),
-    0 28px 70px rgb(8 10 14 / 0.55);
-}
-
-@keyframes orbit-spin {
-  to {
-    transform: rotate(360deg);
-  }
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 20px 50px rgb(58 44 22 / 0.22);
 }
 
 @keyframes trail-pulse {
@@ -139,21 +155,6 @@ body {
   50% {
     opacity: 0.9;
   }
-}
-
-.orbit-slow {
-  transform-origin: 200px 200px;
-  animation: orbit-spin 54s linear infinite;
-}
-
-.orbit-slower {
-  transform-origin: 200px 200px;
-  animation: orbit-spin 86s linear reverse infinite;
-}
-
-.orbit-spark {
-  transform-origin: 200px 200px;
-  animation: orbit-spin 18s linear infinite;
 }
 
 .trail-glow {

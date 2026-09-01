@@ -100,7 +100,7 @@ export function TraceSpine({
                 ) : null}
                 <details>
                   <summary className="cursor-pointer text-accent">Parameters</summary>
-                  <pre className="mt-1 overflow-x-auto rounded-[4px] bg-surface-muted p-2 font-mono text-xs text-foreground">
+                  <pre className="mt-1 overflow-x-auto rounded-sm bg-surface-muted p-2 font-mono text-xs text-foreground">
                     {JSON.stringify(call.input, null, 2)}
                   </pre>
                 </details>

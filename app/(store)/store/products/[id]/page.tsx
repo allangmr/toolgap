@@ -28,13 +28,13 @@ export default function ProductDetailPage({
   }, [id]);
 
   if (!product) {
-    return <p className="text-[#78716c]">Loading product…</p>;
+    return <p className="text-muted">Loading product…</p>;
   }
 
   return (
     <div className="grid gap-8 lg:grid-cols-2">
       <div
-        className="min-h-72 rounded-2xl bg-gradient-to-br from-[#44403c] to-[#1c1917]"
+        className="min-h-72 rounded-lg bg-gradient-to-br from-[#44403c] to-[#1c1917]"
         aria-hidden="true"
       />
       <div className="space-y-4">
@@ -42,20 +42,22 @@ export default function ProductDetailPage({
           ← Catalog
         </Link>
         <div>
-          <p className="text-xs uppercase tracking-wide text-[#78716c]">
+          <p className="text-xs uppercase tracking-wide text-muted">
             {product.brand} · {product.category}
           </p>
-          <h1 className="mt-1 text-3xl font-semibold text-[#1c1917]">{product.name}</h1>
+          <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight text-foreground">
+            {product.name}
+          </h1>
           <p className="mt-2 text-2xl font-semibold tabular-nums">${product.price}</p>
         </div>
-        <p className="text-[#57534e]">{product.description}</p>
+        <p className="text-muted">{product.description}</p>
         <div>
           <h2 className="text-sm font-semibold">Specs</h2>
           <table className="mt-2 w-full text-left text-sm">
             <caption className="sr-only">Product specifications</caption>
             <tbody>
               {Object.entries(product.specs).map(([k, v]) => (
-                <tr key={k} className="border-b border-[#e4ddd3]">
+                <tr key={k} className="border-b border-border">
                   <th scope="row" className="py-2 font-medium">
                     {k}
                   </th>
@@ -83,7 +85,7 @@ export default function ProductDetailPage({
         >
           Add to cart
         </Button>
-        <p className="text-sm text-[#78716c]" aria-live="polite">
+        <p className="text-sm text-muted" aria-live="polite">
           {message}
         </p>
       </div>

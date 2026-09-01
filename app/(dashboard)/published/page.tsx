@@ -162,7 +162,7 @@ function PublishedCard({
   if (!cap) return null;
 
   return (
-    <article className="border border-border bg-surface p-5">
+    <article className="rounded-md border border-border bg-surface p-5 shadow-[var(--shadow-card)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-mono text-xl font-medium">{cap.toolName}</h2>

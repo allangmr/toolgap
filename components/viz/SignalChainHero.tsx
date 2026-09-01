@@ -36,7 +36,7 @@ export function SignalChainHero() {
             aria-hidden="true"
             className={`absolute left-0 top-[13px] h-2 w-2 rounded-full ${
               step.kind === "capability"
-                ? "bg-accent shadow-[0_0_12px_rgb(217_154_61_/_0.7)]"
+                ? "bg-accent shadow-[0_0_10px_rgb(154_52_18_/_0.45)]"
                 : step.kind === "friction"
                   ? "border border-accent bg-transparent"
                   : "bg-foreground/75"

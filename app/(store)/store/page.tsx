@@ -42,22 +42,22 @@ export default function StoreCatalogPage() {
 
   return (
     <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-2xl bg-[#1c1917] px-6 py-14 text-[#faf7f2]">
+      <section className="relative overflow-hidden rounded-lg border border-border bg-accent-subtle px-6 py-14">
         <div
-          className="pointer-events-none absolute inset-0 opacity-30"
+          className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at 20% 20%, #d6d3d1, transparent 40%), radial-gradient(circle at 80% 0%, #a8a29e, transparent 35%)",
+              "radial-gradient(circle at 20% 20%, rgb(154 52 18 / 0.14), transparent 40%), radial-gradient(circle at 80% 0%, rgb(255 255 255 / 0.75), transparent 35%)",
           }}
         />
         <div className="relative max-w-xl">
-          <p className="text-sm uppercase tracking-[0.2em] text-[#a8a29e]">
+          <span className="inline-flex items-center rounded-sm bg-accent px-2.5 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-accent-ink">
             Fieldkit Market
-          </p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
+          </span>
+          <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
             Tools for making, measuring, and moving.
           </h1>
-          <p className="mt-4 text-[#d6d3d1]">
+          <p className="mt-4 text-muted">
             A living catalog instrumented with WebMCP so agents can shop the way the site
             actually works.
           </p>
@@ -66,23 +66,23 @@ export default function StoreCatalogPage() {
 
       <form
         onSubmit={(e) => void onSearch(e)}
-        className="flex flex-wrap items-end gap-3 rounded-xl border border-[#e4ddd3] bg-white p-4"
+        className="flex flex-wrap items-end gap-3 rounded-md border border-border bg-surface p-4 shadow-[var(--shadow-card)]"
       >
-        <label className="flex min-w-[180px] flex-1 flex-col gap-1 text-sm">
+        <label className="flex min-w-[180px] flex-1 flex-col gap-1 text-sm text-foreground">
           Search
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="rounded border border-[#e4ddd3] px-3 py-2"
+            className="lab-input mt-0"
             placeholder="headphones, laptop…"
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1 text-sm text-foreground">
           Category
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="rounded border border-[#e4ddd3] px-3 py-2"
+            className="lab-input mt-0 w-auto"
           >
             <option value="">All</option>
             {categories.map((c) => (
@@ -92,12 +92,12 @@ export default function StoreCatalogPage() {
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1 text-sm text-foreground">
           Brand
           <select
             value={brand}
             onChange={(e) => setBrand(e.target.value)}
-            className="rounded border border-[#e4ddd3] px-3 py-2"
+            className="lab-input mt-0 w-auto"
           >
             <option value="">All</option>
             {brands.map((b) => (
@@ -116,7 +116,7 @@ export default function StoreCatalogPage() {
         ))}
       </div>
 
-      <p className="text-center text-sm text-[#78716c]">
+      <p className="text-center text-sm text-muted">
         Prefer the dashboard?{" "}
         <Link href="/overview" className="text-accent underline">
           Open ToolGap

@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
 const variants = {
-  default: "border border-border bg-surface",
+  default: "border border-border bg-surface shadow-[var(--shadow-card)]",
   plain: "border-0 bg-transparent p-0 shadow-none",
-  discovery: "border border-accent/35 bg-accent-subtle/40",
+  discovery: "border border-accent/30 bg-accent-subtle/50 shadow-[var(--shadow-card)]",
 } as const;
 
 export function Card({
@@ -18,7 +18,7 @@ export function Card({
   variant?: keyof typeof variants;
 }) {
   return (
-    <Tag className={`rounded-[4px] p-4 ${variants[variant]} ${className}`}>
+    <Tag className={`rounded-md p-4 ${variants[variant]} ${className}`}>
       {children}
     </Tag>
   );

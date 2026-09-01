@@ -23,7 +23,7 @@ export function SequenceChips({
             </span>
           ) : null}
           <span
-            className={`rounded-[4px] border px-1.5 py-0.5 ${
+            className={`rounded-sm border px-1.5 py-0.5 ${
               dashed
                 ? "border-dashed border-warning/50 text-warning"
                 : "border-border bg-surface-muted"
