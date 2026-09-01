@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui";
+import { HeroCoastalVideo } from "@/components/viz/HeroCoastalVideo";
 import { SignalChainHero } from "@/components/viz/SignalChainHero";
 import { seedAllScenarios } from "@/lib/seed/scenarios";
 import { runAnalysis } from "@/lib/analysis/pipeline";
@@ -44,8 +45,9 @@ export default function HomePage() {
         </nav>
       </header>
 
-      <section className="grid min-h-[100dvh] items-center gap-12 px-5 pb-16 pt-8 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:px-10 md:pt-10 lg:gap-20">
-        <div className="max-w-xl">
+      <section className="relative isolate grid min-h-[100dvh] items-center gap-12 overflow-hidden px-5 pb-16 pt-8 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:px-10 md:pt-10 lg:gap-20">
+        <HeroCoastalVideo />
+        <div className="relative z-10 max-w-xl">
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
             Agent Capability Intelligence for WebMCP
           </p>
@@ -65,7 +67,7 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
-        <div className="border-l border-border pl-6 md:pl-10">
+        <div className="relative z-10 border-l border-border pl-6 md:pl-10">
           <p className="font-mono text-[11px] uppercase tracking-wider text-muted">
             Real agent traffic
           </p>
