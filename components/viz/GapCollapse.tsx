@@ -168,59 +168,52 @@ function ImpactPill({
 
 function CollapseBridge({ reduce, label }: { reduce: boolean; label: string }) {
   return (
-    <div className="compare-bridge relative flex items-center justify-center py-2 lg:px-1 lg:py-0">
+    <div className="compare-bridge relative flex items-center justify-center self-center py-2 lg:px-2 lg:py-0">
       <motion.div
-        initial={reduce ? false : { opacity: 0, scaleX: 0.4 }}
-        animate={{ opacity: 1, scaleX: 1 }}
+        initial={reduce ? false : { opacity: 0, scale: 0.85 }}
+        animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-        className="flex w-full flex-row items-center gap-3 lg:h-full lg:w-auto lg:flex-col lg:justify-center"
+        className="flex w-full max-w-sm flex-row items-center gap-3 lg:w-16 lg:max-w-none lg:flex-col lg:gap-2"
       >
         <span
           aria-hidden="true"
-          className="compare-beam h-px flex-1 bg-gradient-to-r from-transparent via-accent/70 to-transparent lg:h-16 lg:w-px lg:flex-none lg:bg-gradient-to-b"
+          className="compare-beam h-px flex-1 bg-gradient-to-r from-transparent via-accent/70 to-transparent lg:h-12 lg:w-px lg:flex-none lg:bg-gradient-to-b"
         />
-        <motion.span
-          aria-hidden="true"
-          animate={
-            reduce
-              ? undefined
-              : {
-                  scale: [1, 1.08, 1],
-                  boxShadow: [
-                    "0 0 0 rgb(217 119 47 / 0)",
-                    "0 0 18px rgb(217 119 47 / 0.35)",
-                    "0 0 0 rgb(217 119 47 / 0)",
-                  ],
-                }
-          }
-          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-accent/40 bg-accent text-accent-ink"
-        >
-          <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none">
-            <path
-              d="M4.5 10h11M11 5.5 15.5 10 11 14.5"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lg:hidden"
-            />
-            <path
-              d="M10 4.5v11M5.5 11 10 15.5 14.5 11"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="hidden lg:block"
-            />
-          </svg>
-        </motion.span>
-        <span className="shrink-0 font-mono text-[10px] tracking-[0.16em] text-accent uppercase">
-          {label}
-        </span>
+        <div className="flex flex-col items-center gap-1.5">
+          <motion.span
+            aria-hidden="true"
+            animate={
+              reduce
+                ? undefined
+                : {
+                    scale: [1, 1.08, 1],
+                    boxShadow: [
+                      "0 0 0 rgb(217 119 47 / 0)",
+                      "0 0 18px rgb(217 119 47 / 0.35)",
+                      "0 0 0 rgb(217 119 47 / 0)",
+                    ],
+                  }
+            }
+            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-accent/40 bg-accent text-accent-ink"
+          >
+            <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true">
+              <path
+                d="M4.5 10h11M11 5.5 15.5 10 11 14.5"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </motion.span>
+          <span className="max-w-[5.5rem] text-center font-mono text-[10px] leading-tight tracking-[0.14em] text-accent uppercase">
+            {label}
+          </span>
+        </div>
         <span
           aria-hidden="true"
-          className="compare-beam h-px flex-1 bg-gradient-to-r from-transparent via-accent/70 to-transparent lg:h-16 lg:w-px lg:flex-none lg:bg-gradient-to-b"
+          className="compare-beam h-px flex-1 bg-gradient-to-r from-transparent via-accent/70 to-transparent lg:h-12 lg:w-px lg:flex-none lg:bg-gradient-to-b"
         />
       </motion.div>
     </div>
