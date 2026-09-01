@@ -39,6 +39,8 @@ import {
   parseWorkflowStepParam,
   resolveWorkflowStep,
   stepState,
+  workflowStepHeadline,
+  workflowStepNumber,
   type WorkflowStep,
 } from "@/lib/gaps/workflow-steps";
 import { approveRecommendation, publishRecommendation } from "@/lib/publishing/publish";
@@ -347,9 +349,13 @@ export default function GapDetailClient({ id }: { id: string }) {
         <Link href="/gaps" className="text-sm text-accent hover:underline">
           ← Capability gaps
         </Link>
-        <h1 className="mt-3 font-display text-3xl font-medium tracking-tight md:text-4xl">
-          {gap.title}
+        <p className="mt-5 inline-flex items-center rounded-lg border border-accent/45 bg-accent-subtle px-2.5 py-1 font-mono text-[11px] font-semibold tracking-[0.16em] text-accent uppercase">
+          Step {workflowStepNumber(activeStep)}
+        </p>
+        <h1 className="mt-3 font-display text-4xl font-medium tracking-tight md:text-5xl">
+          {workflowStepHeadline(activeStep)}
         </h1>
+        <p className="mt-2 text-base text-muted">{gap.title}</p>
         <div className="mt-3 flex flex-wrap gap-2">
           <StatusBadge status={gap.status} />
           <StatusBadge status={gap.severity} />
@@ -372,7 +378,7 @@ export default function GapDetailClient({ id }: { id: string }) {
         ) : null}
       </div>
 
-      <div className="grid gap-6 rounded-md border border-accent/30 bg-accent-subtle/40 p-5 md:grid-cols-3">
+      <div className="grid gap-6 rounded-2xl border border-accent/30 bg-accent-subtle/40 p-6 md:grid-cols-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-wider text-muted">
             What agents are trying to do
@@ -413,13 +419,13 @@ export default function GapDetailClient({ id }: { id: string }) {
       />
 
       <div
-        className="flex flex-wrap items-center gap-2"
+        className="flex flex-wrap items-center gap-3"
         role="group"
         aria-label="Workflow action"
       >
         {renderPrimaryAction()}
         {gap.status !== "dismissed" && !isResolved ? (
-          <Button variant="ghost" onClick={() => setDismissOpen(true)} disabled={busy}>
+          <Button variant="ghost" size="md" onClick={() => setDismissOpen(true)} disabled={busy}>
             Dismiss…
           </Button>
         ) : null}
@@ -560,17 +566,39 @@ export default function GapDetailClient({ id }: { id: string }) {
               currentDurationMs={simulation.current.avgDurationMs}
               proposedDurationMs={simulation.proposed.estDurationMs}
             />
-            <div className="border-t border-border pt-4">
-              <h3 className="font-display text-lg font-medium">Assumptions</h3>
-              <ul className="mt-2 list-disc pl-5 text-sm text-muted">
+            <aside className="relative overflow-hidden rounded-2xl border border-border/80 bg-surface-raised/90 p-5 shadow-[var(--shadow-card)] md:p-6">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-accent via-accent/50 to-transparent"
+              />
+              <div className="flex flex-wrap items-end justify-between gap-3 pl-3">
+                <div>
+                  <p className="font-mono text-[11px] font-semibold tracking-[0.16em] text-accent uppercase">
+                    Model notes
+                  </p>
+                  <h3 className="mt-1 font-display text-2xl font-medium tracking-tight">
+                    Simulation assumptions
+                  </h3>
+                </div>
+                <p className="rounded-xl border border-border bg-surface-muted px-3 py-2 font-mono text-[11px] tracking-wide text-muted uppercase">
+                  Sessions measured · {simulation.affectedSessions}
+                </p>
+              </div>
+              <ul className="mt-4 space-y-2.5 pl-3">
                 {simulation.assumptions.map((a) => (
-                  <li key={a}>{a}</li>
+                  <li
+                    key={a}
+                    className="flex gap-2.5 text-sm leading-relaxed text-muted"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent"
+                    />
+                    <span>{a}</span>
+                  </li>
                 ))}
               </ul>
-              <p className="mt-3 text-sm">
-                Affected sessions (measured): {simulation.affectedSessions}
-              </p>
-            </div>
+            </aside>
           </div>
         )
       ) : null}

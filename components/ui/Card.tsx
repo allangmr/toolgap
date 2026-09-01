@@ -18,7 +18,7 @@ export function Card({
   variant?: keyof typeof variants;
 }) {
   return (
-    <Tag className={`rounded-md p-4 ${variants[variant]} ${className}`}>
+    <Tag className={`rounded-2xl p-5 md:p-6 ${variants[variant]} ${className}`}>
       {children}
     </Tag>
   );
