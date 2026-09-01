@@ -161,6 +161,108 @@ textarea::placeholder {
   animation: trail-pulse 3.4s var(--ease-out) infinite;
 }
 
+.compare-grid {
+  background-image:
+    linear-gradient(rgb(217 119 47 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(217 119 47 / 0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+}
+
+.compare-beam {
+  position: relative;
+  overflow: hidden;
+}
+
+.compare-beam::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 250 243 / 0.85),
+    transparent
+  );
+  animation: compare-beam-travel-x 2.2s var(--ease-out) infinite;
+}
+
+@keyframes compare-beam-travel-x {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes compare-beam-travel-y {
+  0% {
+    transform: translateY(-120%);
+  }
+  100% {
+    transform: translateY(120%);
+  }
+}
+
+@media (min-width: 1024px) {
+  .compare-bridge .compare-beam::after {
+    background: linear-gradient(
+      180deg,
+      transparent,
+      rgb(255 250 243 / 0.85),
+      transparent
+    );
+    animation-name: compare-beam-travel-y;
+  }
+}
+
+.compare-scan {
+  animation: compare-scan-sweep 2.8s var(--ease-out) infinite;
+}
+
+@keyframes compare-scan-sweep {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateY(6px);
+  }
+}
+
+.compare-panel-next {
+  position: relative;
+}
+
+.compare-panel-next::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    rgb(217 119 47 / 0.35),
+    transparent 42%,
+    rgb(217 119 47 / 0.12)
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  padding: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .compare-beam::after,
+  .compare-scan {
+    animation: none;
+  }
+}
+
 @media (prefers-reduced-transparency: reduce) {
   .landing-glass {
     background: var(--surface);
