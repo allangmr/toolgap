@@ -52,13 +52,16 @@ export function computeBeforeAfter(args: {
       ? afterFromTool
       : scoped.filter((j) => j.startedAt >= publishedAt);
 
-  const summarize = (list: Journey[]) => ({
-    avgCalls: round(mean(list.map((j) => j.callCount)), 2),
-    completionRate: round(completionRate(list), 3),
-    avgDurationMs: round(mean(list.map((j) => j.durationMs)), 1),
-    sampleSize: list.length,
-    source: "measured" as const,
-  });
+  const summarize = (list: Journey[]) => {
+    const rate = completionRate(list);
+    return {
+      avgCalls: round(mean(list.map((j) => j.callCount)), 2),
+      completionRate: rate === null ? null : round(rate, 3),
+      avgDurationMs: round(mean(list.map((j) => j.durationMs)), 1),
+      sampleSize: list.length,
+      source: "measured" as const,
+    };
+  };
 
   const before = summarize(beforeJ);
   const after = summarize(afterFinal);

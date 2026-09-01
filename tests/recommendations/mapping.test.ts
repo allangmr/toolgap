@@ -78,3 +78,11 @@ describe("estimated benefit honesty", () => {
     ]);
   });
 });
+
+describe("COMPARE description accuracy", () => {
+  it("describes product fields only and does not claim availability", () => {
+    const rec = expectOk(buildRecommendation(gap("COMPARE")));
+    expect(rec.description).toContain("selected product fields");
+    expect(rec.description).not.toMatch(/availability|stock|inventory/i);
+  });
+});

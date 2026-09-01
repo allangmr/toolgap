@@ -18,7 +18,10 @@ import { useAnalysisStatus } from "@/components/providers/AnalysisStatusProvider
 import { useState } from "react";
 import { round } from "@/lib/shared";
 import { sparklineValues } from "@/lib/analytics/sparkline";
-import { isSettled } from "@/lib/journeys/reconstruct";
+import {
+  isCompletionMeasurable,
+  isSettled,
+} from "@/lib/journeys/reconstruct";
 
 export default function OverviewPage() {
   const sessions = useLiveQuery(() => sessionRepo.all(), []) ?? [];
@@ -36,6 +39,7 @@ export default function OverviewPage() {
   })[0];
 
   const settledJourneys = journeys.filter(isSettled);
+  const measurableCompletions = isCompletionMeasurable(settledJourneys);
   const completed = settledJourneys.filter((j) => j.outcome === "completed").length;
   const frictionJourneys = journeys.filter((j) => j.frictionScore > 0);
   const frictionRate =
@@ -136,9 +140,13 @@ export default function OverviewPage() {
                 sparkline={sessionSpark}
               />
               <Stat
-                label="Successful journeys"
-                value={completed}
-                hint={`${settledJourneys.length} settled`}
+                label="Task completions"
+                value={measurableCompletions ? completed : "Not measured"}
+                hint={
+                  measurableCompletions
+                    ? `${settledJourneys.length} settled with explicit signal`
+                    : `${settledJourneys.length} settled · no explicit task-completion signal`
+                }
                 sparkline={completedSpark}
               />
               <Stat

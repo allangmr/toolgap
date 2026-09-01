@@ -2,7 +2,10 @@
 
 import { useLiveQuery } from "dexie-react-hooks";
 import { journeyRepo } from "@/lib/db/repositories";
-import { groupJourneyPatterns } from "@/lib/journeys/reconstruct";
+import {
+  formatCompletionRate,
+  groupJourneyPatterns,
+} from "@/lib/journeys/reconstruct";
 import { Badge, StatusBadge } from "@/components/ui";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { JourneySignature } from "@/components/dashboard/JourneySignature";
@@ -33,7 +36,9 @@ export default function JourneysPage() {
             <article key={pattern.signature} className="py-5">
               <JourneySignature signature={pattern.signature} />
               <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted">
-                <span className="font-mono text-xs">{pattern.journeyCount} journeys</span>
+                <span className="font-mono text-xs">
+                  {pattern.journeyCount} journeys
+                </span>
                 <span className="font-mono text-xs">
                   avg {round(pattern.avgCalls, 1)} calls
                 </span>
@@ -41,7 +46,7 @@ export default function JourneysPage() {
                   {formatDuration(pattern.avgDurationMs)}
                 </span>
                 <span className="font-mono text-xs">
-                  {round(pattern.completionRate * 100, 1)}% completion
+                  Task completion: {formatCompletionRate(group)}
                 </span>
                 <span className="inline-flex items-center gap-1">
                   {pattern.inferredIntent} <StatusBadge status="inferred" />

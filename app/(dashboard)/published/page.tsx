@@ -206,13 +206,19 @@ function PublishedCard({
             />
             <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
               <p className="font-mono text-xs text-muted">
-                Before completion {round(snapshot.before.completionRate * 100, 1)}% ·
-                duration {snapshot.before.avgDurationMs}ms · n=
+                Before completion{" "}
+                {snapshot.before.completionRate === null
+                  ? "Not measured"
+                  : `${round(snapshot.before.completionRate * 100, 1)}%`}{" "}
+                · duration {snapshot.before.avgDurationMs}ms · n=
                 {snapshot.before.sampleSize}
               </p>
               <p className="font-mono text-xs text-muted">
-                After completion {round(snapshot.after.completionRate * 100, 1)}% ·
-                duration {snapshot.after.avgDurationMs}ms · n={snapshot.after.sampleSize}
+                After completion{" "}
+                {snapshot.after.completionRate === null
+                  ? "Not measured"
+                  : `${round(snapshot.after.completionRate * 100, 1)}%`}{" "}
+                · duration {snapshot.after.avgDurationMs}ms · n={snapshot.after.sampleSize}
               </p>
             </div>
           </div>

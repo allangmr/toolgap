@@ -36,6 +36,10 @@ import { simulate } from "@/lib/recommendations/simulation";
 import { dismissGap, transitionGap } from "@/lib/gaps/engine";
 import { approveRecommendation, publishRecommendation } from "@/lib/publishing/publish";
 import { formatTimestamp, round } from "@/lib/shared";
+import {
+  formatCompletionRate,
+  formatJourneyOutcome,
+} from "@/lib/journeys/reconstruct";
 import { useAnalysisStatus } from "@/components/providers/AnalysisStatusProvider";
 
 export default function GapDetailClient({ id }: { id: string }) {
@@ -385,8 +389,8 @@ export default function GapDetailClient({ id }: { id: string }) {
                 <JourneySignature signature={dominantSignature} />
                 <p className="mt-2 text-sm text-muted">
                   {supportingJourneys.length} supporting journeys · avg{" "}
-                  {gap.currentAvgCallCount} calls ·{" "}
-                  {round(gap.currentCompletionRate * 100, 1)}% completion
+                  {gap.currentAvgCallCount} calls · Task completion:{" "}
+                  {formatCompletionRate(supportingJourneys)}
                 </p>
                 <ul className="mt-3 space-y-1 text-sm">
                   {supportingJourneys.slice(0, 8).map((j) => (
@@ -397,7 +401,7 @@ export default function GapDetailClient({ id }: { id: string }) {
                       >
                         Session {j.sessionId.slice(0, 8)}
                       </Link>{" "}
-                      · {j.callCount} calls · {j.outcome}
+                      · {j.callCount} calls · {formatJourneyOutcome(j.outcome)}
                     </li>
                   ))}
                 </ul>
