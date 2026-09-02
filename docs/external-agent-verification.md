@@ -11,7 +11,7 @@ These four paths all enter the registry through the same `invokeInternal` functi
 - The sample data seeder (`seedAllScenarios`)
 - Settings, "Run live agent-driver"
 - The Vitest suite
-- A DevTools console call to `navigator.modelContextTesting.executeTool(...)`
+- A DevTools console call to `document.modelContext.executeTool(...)` or `navigator.modelContextTesting.executeTool(...)` (the testing shim exists only in polyfill mode)
 
 They are useful regression checks. None of them is a model deciding what to call. Do not describe any of them as external-agent verification.
 
