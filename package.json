@@ -14,7 +14,8 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "demo:video": "node scripts/hackathon-demo-video.mjs"
   },
   "dependencies": {
     "@mcp-b/global": "5.0.1",
