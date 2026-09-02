@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui";
 import { HeroProductVisual } from "@/components/viz/HeroProductVisual";
 import { SignalChainHero } from "@/components/viz/SignalChainHero";
@@ -48,7 +49,7 @@ export default function HomePage() {
   return (
     <main id="main" className="page-grain relative flex flex-1 flex-col">
       <header className="flex h-16 items-center justify-between gap-4 px-5 md:px-10 lg:px-16">
-        <p className="font-display text-lg font-semibold tracking-tight">ToolGap</p>
+        <BrandLogo href="/" preload />
         <nav aria-label="Primary" className="flex items-center gap-5 text-sm">
           <a
             href={REPO_URL}
@@ -73,8 +74,8 @@ export default function HomePage() {
             Your website learns what agents need next.
           </h1>
           <p className="mt-5 max-w-[36ch] text-base leading-relaxed text-muted">
-            ToolGap watches agent traffic, names the friction, and recommends the
-            missing WebMCP capability.
+            ToolGap watches agent traffic, names the friction, and recommends the missing
+            WebMCP capability.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-3">
             <Button size="lg" onClick={() => void seedAndOpen()} disabled={seeding}>
@@ -133,13 +134,12 @@ export default function HomePage() {
       <section className="px-5 py-20 md:px-10 md:py-28 lg:px-16">
         <div className="mx-auto max-w-5xl">
           <h2 className="max-w-[24ch] font-display text-3xl font-semibold leading-[1.12] tracking-[-0.02em] md:text-5xl">
-            Instead of forcing agents to adapt to your website, your website adapts
-            to agents.
+            Instead of forcing agents to adapt to your website, your website adapts to
+            agents.
           </h2>
           <p className="mt-6 max-w-[52ch] text-base leading-relaxed text-muted">
             Human review stays in the loop. Every published capability is a read-only
-            template someone simulated, edited, and approved. AI proposes. Human
-            decides.
+            template someone simulated, edited, and approved. AI proposes. Human decides.
           </p>
           <div className="mt-14 overflow-hidden rounded-lg border border-border shadow-[var(--shadow)]">
             <Image
@@ -155,11 +155,15 @@ export default function HomePage() {
 
       <footer className="border-t border-border px-5 py-10 md:px-10 lg:px-16">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <p className="font-display text-base font-semibold tracking-tight">ToolGap</p>
+          <BrandLogo
+            href="/"
+            size="sm"
+            wordmarkClassName="font-display text-base font-semibold tracking-tight text-foreground"
+          />
           <p className="max-w-[72ch] text-xs leading-relaxed text-muted">
-            Everything runs in your browser. Telemetry, gaps, and published
-            capabilities live in IndexedDB, so a fresh profile starts empty and the
-            demo button rebuilds the whole story.
+            Everything runs in your browser. Telemetry, gaps, and published capabilities
+            live in IndexedDB, so a fresh profile starts empty and the demo button
+            rebuilds the whole story.
           </p>
         </div>
       </footer>

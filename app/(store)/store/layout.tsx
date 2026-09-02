@@ -9,6 +9,7 @@ import {
 import { cartRepo } from "@/lib/db/repositories";
 import { ensureCatalogSeeded, getOrCreateCart } from "@/lib/store-domain/services";
 import { useEffect, useState } from "react";
+import { BrandMark } from "@/components/brand/BrandLogo";
 import { WebmcpStatusBadge } from "@/components/dashboard/WebmcpStatusBadge";
 
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
@@ -47,7 +48,11 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
               <Link href="/store/cart" className="text-foreground hover:underline">
                 Cart ({itemCount})
               </Link>
-              <Link href="/overview" className="font-medium text-accent hover:underline">
+              <Link
+                href="/overview"
+                className="inline-flex items-center gap-1.5 font-medium text-accent hover:underline"
+              >
+                <BrandMark size={20} alt="" />
                 ToolGap
               </Link>
               <WebmcpStatusBadge />
@@ -58,7 +63,8 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
           {children}
         </main>
         <footer className="border-t border-border py-6 text-center text-xs text-muted">
-          Fieldkit Market is a ToolGap demo surface. Tool calls are observed for capability intelligence.
+          Fieldkit Market is a ToolGap demo surface. Tool calls are observed for
+          capability intelligence.
         </footer>
       </div>
     </StoreToolsProvider>

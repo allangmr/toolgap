@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { BrandMark } from "@/components/brand/BrandLogo";
 import { ensureDefaults } from "@/lib/db/repositories";
 import { syncActiveCapabilities } from "@/lib/publishing/publish";
 import { requestPersistentStorage } from "@/lib/telemetry/recorder";
@@ -32,7 +33,8 @@ export function DbBootstrap({ children }: { children: ReactNode }) {
 
   if (!ready) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted">
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 text-sm text-muted">
+        <BrandMark size={40} alt="" />
         Starting ToolGap…
       </div>
     );
