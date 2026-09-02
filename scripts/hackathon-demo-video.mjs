@@ -12,7 +12,6 @@ import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:
 import { spawn } from "node:child_process";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000";
 const OUT_DIR = process.env.DEMO_OUT_DIR ?? path.join(tmpdir(), "toolgap-demo");
@@ -36,9 +35,8 @@ function resolvePlaywright() {
   throw new Error("Playwright not found. Run: npx playwright --version");
 }
 
-const { chromium } = await import(
-  pathToFileURL(path.join(resolvePlaywright(), "index.js")).href
-);
+const require = createRequire(import.meta.url);
+const { chromium } = require(path.join(resolvePlaywright(), "index.js"));
 
 const startedAt = Date.now();
 const elapsed = () => Number(((Date.now() - startedAt) / 1000).toFixed(1));
@@ -57,74 +55,38 @@ function run(cmd, args) {
   });
 }
 
-const HUD_INIT = `(() => {
-  if (window.__demoHudReady) return;
-  window.__demoHudReady = true;
-
+function installDemoHudInPage() {
   function mount() {
     if (document.getElementById("demo-hud-root")) return;
     const root = document.createElement("div");
     root.id = "demo-hud-root";
-    root.innerHTML = \`
-      <style>
-        #demo-hud-root { pointer-events: none; }
-        #demo-cursor {
-          position: fixed; z-index: 2147483645; width: 22px; height: 22px;
-          margin-left: -3px; margin-top: -2px; left: 40%; top: 40%;
-          background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 22 22'><path d='M3 2.2 3 17.4 7.4 13.2 10.6 20.2 13.1 19.1 9.8 12.1 16.2 12Z' fill='%231f1a14' stroke='%23fffaf3' stroke-width='1.4' stroke-linejoin='round'/></svg>") no-repeat;
-        }
-        #demo-caption {
-          position: fixed; left: 48px; right: 48px; bottom: 36px; z-index: 2147483644;
-          display: flex; flex-direction: column; gap: 6px;
-          padding: 16px 22px;
-          border-radius: 16px;
-          background: rgb(31 26 20 / 0.92);
-          box-shadow: 0 18px 44px rgb(31 26 20 / 0.28);
-          color: #fffaf3; font-family: var(--font-geist-sans), ui-sans-serif, system-ui;
-          opacity: 0; transform: translateY(10px);
-          transition: opacity 280ms cubic-bezier(0.16,1,0.3,1), transform 280ms cubic-bezier(0.16,1,0.3,1);
-        }
-        #demo-caption.visible { opacity: 1; transform: translateY(0); }
-        #demo-kicker {
-          font-family: ui-monospace, var(--font-geist-mono), monospace;
-          font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
-          color: #d9772f;
-        }
-        #demo-title { font-size: 22px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.2; }
-        #demo-sub { font-size: 15px; color: #c6bba4; line-height: 1.35; }
-        #demo-intro {
-          position: fixed; inset: 0; z-index: 2147483646;
-          display: flex; flex-direction: column; justify-content: flex-end;
-          padding: 72px 80px;
-          background:
-            radial-gradient(circle at 80% 0%, rgb(217 119 47 / 0.28), transparent 42%),
-            linear-gradient(180deg, #2a2218 0%, #1a1611 100%);
-          color: #fffaf3; font-family: var(--font-geist-sans), ui-sans-serif, system-ui;
-          opacity: 1; transition: opacity 700ms cubic-bezier(0.16,1,0.3,1);
-        }
-        #demo-intro .brand {
-          font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase;
-          color: #d9772f; font-family: ui-monospace, monospace;
-        }
-        #demo-intro h1 {
-          margin: 14px 0 0; font-size: 64px; font-weight: 600;
-          letter-spacing: -0.04em; line-height: 0.95; max-width: 16ch;
-        }
-        #demo-intro p { margin: 18px 0 0; font-size: 22px; color: #c6bba4; max-width: 44ch; }
-      </style>
-      <div id="demo-cursor"></div>
-      <div id="demo-caption">
-        <div id="demo-kicker"></div>
-        <div id="demo-title"></div>
-        <div id="demo-sub"></div>
-      </div>
-    \`;
+    root.innerHTML = [
+      "<style>",
+      "#demo-hud-root { pointer-events: none; }",
+      "#demo-cursor { position: fixed; z-index: 2147483645; width: 22px; height: 22px; margin-left: -3px; margin-top: -2px; left: 40%; top: 40%;",
+      "background: url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 22 22'><path d='M3 2.2 3 17.4 7.4 13.2 10.6 20.2 13.1 19.1 9.8 12.1 16.2 12Z' fill='%231f1a14' stroke='%23fffaf3' stroke-width='1.4' stroke-linejoin='round'/></svg>\") no-repeat; }",
+      "#demo-caption { position: fixed; left: 48px; right: 48px; bottom: 36px; z-index: 2147483644; display: flex; flex-direction: column; gap: 6px; padding: 16px 22px; border-radius: 16px; background: rgb(31 26 20 / 0.92); box-shadow: 0 18px 44px rgb(31 26 20 / 0.28); color: #fffaf3; font-family: var(--font-geist-sans), ui-sans-serif, system-ui; opacity: 0; transform: translateY(10px); transition: opacity 280ms cubic-bezier(0.16,1,0.3,1), transform 280ms cubic-bezier(0.16,1,0.3,1); }",
+      "#demo-caption.visible { opacity: 1; transform: translateY(0); }",
+      "#demo-kicker { font-family: ui-monospace, var(--font-geist-mono), monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #d9772f; }",
+      "#demo-title { font-size: 22px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.2; }",
+      "#demo-sub { font-size: 15px; color: #c6bba4; line-height: 1.35; }",
+      "#demo-intro { position: fixed; inset: 0; z-index: 2147483646; display: flex; flex-direction: column; justify-content: flex-end; padding: 72px 80px; background: radial-gradient(circle at 80% 0%, rgb(217 119 47 / 0.28), transparent 42%), linear-gradient(180deg, #2a2218 0%, #1a1611 100%); color: #fffaf3; font-family: var(--font-geist-sans), ui-sans-serif, system-ui; opacity: 1; transition: opacity 700ms cubic-bezier(0.16,1,0.3,1); }",
+      "#demo-intro .brand { font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: #d9772f; font-family: ui-monospace, monospace; }",
+      "#demo-intro h1 { margin: 14px 0 0; font-size: 64px; font-weight: 600; letter-spacing: -0.04em; line-height: 0.95; max-width: 16ch; }",
+      "#demo-intro p { margin: 18px 0 0; font-size: 22px; color: #c6bba4; max-width: 44ch; }",
+      "</style>",
+      "<div id=\"demo-cursor\"></div>",
+      "<div id=\"demo-caption\"><div id=\"demo-kicker\"></div><div id=\"demo-title\"></div><div id=\"demo-sub\"></div></div>",
+    ].join("\n");
     document.documentElement.appendChild(root);
   }
 
   mount();
-  const obs = new MutationObserver(mount);
-  obs.observe(document.documentElement, { childList: true });
+  const hideNext = document.getElementById("demo-hide-next") || document.createElement("style");
+  hideNext.id = "demo-hide-next";
+  hideNext.textContent =
+    "nextjs-portal, [data-next-badge-root], [data-nextjs-toast] { display: none !important; }";
+  document.documentElement.appendChild(hideNext);
 
   window.__demoSetCaption = (kicker, title, sub) => {
     mount();
@@ -138,7 +100,8 @@ const HUD_INIT = `(() => {
     box.classList.add("visible");
   };
   window.__demoHideCaption = () => {
-    document.getElementById("demo-caption")?.classList.remove("visible");
+    const box = document.getElementById("demo-caption");
+    if (box) box.classList.remove("visible");
   };
   window.__demoMoveCursor = (x, y, down) => {
     mount();
@@ -149,16 +112,14 @@ const HUD_INIT = `(() => {
     el.style.transform = down ? "scale(0.86)" : "scale(1)";
   };
   window.__demoShowIntro = (kind) => {
-    document.getElementById("demo-intro")?.remove();
+    const existing = document.getElementById("demo-intro");
+    if (existing) existing.remove();
     const intro = document.createElement("div");
     intro.id = "demo-intro";
-    intro.innerHTML = kind === "outro"
-      ? \`<div class="brand">ToolGap</div>
-         <h1>El nuevo flujo ya está vivo.</h1>
-         <p>Agentes revelan el gap. Humanos aprueban. WebMCP publica. toolgap.netlify.app</p>\`
-      : \`<div class="brand">Hackathon demo · WebMCP</div>
-         <h1>Your website learns what agents need next.</h1>
-         <p>ToolGap observa al agente, tú revisas el flujo, y publicas la capability que faltaba.</p>\`;
+    intro.innerHTML =
+      kind === "outro"
+        ? "<div class=\"brand\">ToolGap</div><h1>El nuevo flujo ya está vivo.</h1><p>Agentes revelan el gap. Humanos aprueban. WebMCP publica. toolgap.netlify.app</p>"
+        : "<div class=\"brand\">Hackathon demo · WebMCP</div><h1>Your website learns what agents need next.</h1><p>ToolGap observa al agente, tú revisas el flujo, y publicas la capability que faltaba.</p>";
     document.documentElement.appendChild(intro);
   };
   window.__demoHideIntro = () => {
@@ -167,10 +128,10 @@ const HUD_INIT = `(() => {
     intro.style.opacity = "0";
     setTimeout(() => intro.remove(), 720);
   };
-})()`;
+}
 
 async function installHud(page) {
-  await page.evaluate(HUD_INIT);
+  await page.evaluate(installDemoHudInPage);
 }
 
 async function caption(page, kicker, title, sub = "") {
@@ -327,6 +288,7 @@ async function record() {
       "--disable-session-crashed-bubble",
       "--hide-crash-restore-bubble",
       "--disable-infobars",
+      "--disable-gpu",
     ],
     recordVideo: { dir: videoDir, size: VIEWPORT },
     locale: "en-US",
@@ -335,7 +297,7 @@ async function record() {
 
   const page = context.pages()[0] ?? (await context.newPage());
   page.setDefaultTimeout(20_000);
-  await page.addInitScript(HUD_INIT);
+  await page.addInitScript(installDemoHudInPage);
 
   try {
     log("open landing");
@@ -343,9 +305,9 @@ async function record() {
     await page.waitForSelector("h1", { timeout: 60_000 });
     await installHud(page);
     await page.evaluate(() => window.__demoShowIntro("intro"));
-    await sleep(3800);
+    await sleep(4500);
     await page.evaluate(() => window.__demoHideIntro());
-    await sleep(700);
+    await sleep(800);
 
     await caption(
       page,
@@ -367,9 +329,9 @@ async function record() {
       "El dashboard ya tiene telemetría real",
       "Sesiones, journeys y friction reconstruidos desde tool calls.",
     );
-    await sleep(1800);
+    await sleep(2400);
     await scrollBy(page, 380);
-    await sleep(1000);
+    await sleep(1200);
 
     await caption(
       page,
@@ -380,7 +342,7 @@ async function record() {
     await click(page, page.getByRole("link", { name: "Open demo store" }));
     await page.waitForURL("**/store");
     await waitHeading(page, /Tools for making/);
-    await sleep(900);
+    await sleep(1400);
 
     await click(page, page.getByPlaceholder(/headphones/i));
     await page.getByPlaceholder(/headphones/i).fill("");
@@ -396,7 +358,7 @@ async function record() {
       "get_product: Auralis Pulse ANC",
       "El agente inspecciona specs una a una porque no hay compare.",
     );
-    await sleep(1500);
+    await sleep(2000);
     await click(page, page.getByRole("link", { name: "← Catalog" }));
     await click(page, page.getByRole("link", { name: "Soundform Drift" }));
     await caption(
@@ -423,7 +385,7 @@ async function record() {
     await waitHeading(page, "Traffic");
     await clickTab(page, "Journeys");
     await page.getByText("get_product").first().waitFor({ timeout: 15_000 });
-    await sleep(1600);
+    await sleep(2200);
 
     await caption(
       page,
@@ -458,9 +420,9 @@ async function record() {
       "Timeline del agente: el desvío de comparación",
       "El humano ve exactamente qué tools se llamaron, en qué orden y con qué friction.",
     );
-    await sleep(2000);
+    await sleep(2800);
     await scrollBy(page, 280);
-    await sleep(700);
+    await sleep(900);
 
     await page.goBack();
     await waitHeading(page, "You review the evidence");
@@ -500,7 +462,7 @@ async function record() {
       "Comparas el journey actual vs el propuesto",
       "De get_product repetido a search_products → compare_products.",
     );
-    await sleep(2400);
+    await sleep(3000);
 
     await click(page, page.getByRole("button", { name: "Approve for publish" }));
     await waitHeading(page, "You publish the fix");
@@ -537,7 +499,7 @@ async function record() {
       "Before / after sobre llamadas reales",
       "Menos calls, journeys más cortos, misma intención: comparar productos.",
     );
-    await sleep(1800);
+    await sleep(2400);
 
     await navDashboard(page, "Traffic");
     await waitHeading(page, "Traffic");
@@ -548,19 +510,19 @@ async function record() {
       "El agente ya no compara a mano",
       "El signature nuevo es search_products → compare_products.",
     );
-    await sleep(1600);
+    await sleep(2200);
     await clickTab(page, "Sessions");
     await click(page, page.locator("table a").first());
     await page.waitForURL("**/sessions/**");
     await page.getByText("compare_products").first().waitFor({ timeout: 15_000 });
-    await sleep(2000);
+    await sleep(2600);
 
     await installHud(page);
     await page.evaluate(() => {
       window.__demoHideCaption?.();
       window.__demoShowIntro("outro");
     });
-    await sleep(3400);
+    await sleep(4000);
   } catch (error) {
     const shot = path.join(OUT_DIR, "demo-failure.png");
     await page.screenshot({ path: shot, fullPage: true }).catch(() => {});
