@@ -27,16 +27,17 @@ Stay in one browser profile. WebMCP tools and telemetry are per tab / IndexedDB.
    add_to_cart, get_cart, complete_checkout.
 
    Optional agent check in this same tab:
-   ChatGPT in-app browser, or Chrome 149+ with
-   chrome://flags/#enable-webmcp-testing enabled, or Cursor via MCP-B.
+   ChatGPT in-app browser, Chrome 149+ with
+   chrome://flags/#enable-webmcp-testing, or Cursor via MCP-B.
+
+   In ChatGPT's in-app browser, open Site tools in the address bar
+   to see the six store tools. You do not need DevTools.
+
    Prompt (do not name a tool): "I need commuting headphones. Compare a
    few on battery vs price."
-   DevTools (discovery): (await document.modelContext.getTools()).map(t => t.name)
-   Native execute (Chrome with executeTool): pass the tool object, args as JSON string:
-     const t = (await document.modelContext.getTools()).find(t => t.name === "search_products")
-     await document.modelContext.executeTool(t, JSON.stringify({ q: "headphones" }))
-   Polyfill execute (only if navigator.modelContextTesting exists):
-     await navigator.modelContextTesting.executeTool("search_products", JSON.stringify({ q: "headphones" }))
+
+   Optional discovery check:
+   (await document.modelContext.getTools()).map(t => t.name)
 
    A live call creates a session. It does NOT open a gap yet.
    Gaps need 3 supporting sessions of the same friction pattern
@@ -57,6 +58,8 @@ Stay in one browser profile. WebMCP tools and telemetry are per tab / IndexedDB.
 
    Alternative without wiping the live session: Settings →
    "Run live agent-driver comparison sequence" three times.
+   That driver is a regression path, not agent discovery.
+   For discovery, use the prompt in step 1.
 
    Then: Capabilities → "Missing compare_products capability" → Evidence
    → Build recommendation → Run simulation → Approve for publish
