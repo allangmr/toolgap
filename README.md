@@ -24,6 +24,8 @@ Start at the root for the walkthrough. The dashboard is at `/overview` and the i
 
 [https://www.youtube.com/watch?v=mUor09Qkf40](https://www.youtube.com/watch?v=mUor09Qkf40) — 2:48, public, with audio.
 
+Devpost paste copy (testing instructions + project description): [docs/devpost-submission.md](docs/devpost-submission.md).
+
 ## Requirements
 
 - Node.js 22+
@@ -67,7 +69,7 @@ The sample data seeder, the live agent-driver, and the test suite all enter the 
 
 1. Open `/overview`
 2. Click **Load sample data**
-3. Inspect **Capability Gaps** → open the compare-products gap
+3. Inspect **Capabilities** → open the compare-products gap (3 supporting sessions required; sample data already has them)
 4. Build recommendation → Simulate → Approve → Publish
 5. Open `/store` — `compare_products` is now registered as a dynamic tool
 6. On **Published**, compute before/after after more sessions
