@@ -39,22 +39,22 @@ Open:
 
 ## Scripts
 
-| Script | Purpose |
-| --- | --- |
-| `pnpm dev` | Next.js dev server |
-| `pnpm build` | Production build |
-| `pnpm start` | Production server |
-| `pnpm test` | Vitest unit + integration tests |
-| `pnpm typecheck` | TypeScript check |
-| `pnpm lint` | ESLint |
-| `pnpm format` | Prettier |
+| Script           | Purpose                         |
+| ---------------- | ------------------------------- |
+| `pnpm dev`       | Next.js dev server              |
+| `pnpm build`     | Production build                |
+| `pnpm start`     | Production server               |
+| `pnpm test`      | Vitest unit + integration tests |
+| `pnpm typecheck` | TypeScript check                |
+| `pnpm lint`      | ESLint                          |
+| `pnpm format`    | Prettier                        |
 
 ## WebMCP modes
 
-ToolGap uses `navigator.modelContext.registerTool` / `unregisterTool`.
+ToolGap registers tools on `document.modelContext` when that surface exists, and falls back to `navigator.modelContext`.
 
-1. **Native** — Chrome with WebMCP enabled (Canary / flag). Detected automatically and always preferred.
-2. **Polyfill** — set `NEXT_PUBLIC_WEBMCP_POLYFILL=1` to load `@mcp-b/global`. The deployed site runs this mode.
+1. **Native** — ChatGPT's in-app browser or Chrome 149+ with WebMCP (`document.modelContext.registerTool`). Detected automatically and always preferred so agents see Chromium's tool list.
+2. **Polyfill** — default on the deployed site. Loads `@mcp-b/global` when the canonical document surface is missing, including Chrome builds that only expose a navigator stub. Set `NEXT_PUBLIC_WEBMCP_POLYFILL=0` to disable.
 3. **Noop** — when neither is available. The app and analytics still work; tools are not exposed to agents. Use **Settings → Run live agent-driver** or seed data instead.
 
 The sample data seeder, the live agent-driver, and the test suite all enter the registry through the same instrumented path a real agent uses. That makes them good regression checks and **not** external-agent verification. To verify a real model, follow [docs/external-agent-verification.md](docs/external-agent-verification.md).

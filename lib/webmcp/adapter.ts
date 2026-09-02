@@ -15,6 +15,7 @@ type ModelContextLike = {
     options?: { signal?: AbortSignal },
   ) => RegisterToolResult;
   unregisterTool?: (name: string) => void;
+  getTools?: () => unknown;
 };
 
 function getModelContext(): ModelContextLike | null {
@@ -33,6 +34,51 @@ function isThenable(value: unknown): value is Promise<unknown> {
     value !== null &&
     "then" in value &&
     typeof (value as { then?: unknown }).then === "function"
+  );
+}
+
+function isListable(ctx: ModelContextLike | null): boolean {
+  return !!ctx && typeof ctx.getTools === "function";
+}
+
+/**
+ * ChatGPT's in-app browser and Chrome 149+ expose the canonical
+ * `document.modelContext`. A navigator-only object is often a Chromium stub
+ * (`registerTool` exists, tools never appear to agents).
+ */
+export function hasCanonicalNativeContext(): boolean {
+  if (typeof document === "undefined") return false;
+  const ctx = document.modelContext as unknown as ModelContextLike | undefined;
+  return !!ctx && typeof ctx.registerTool === "function";
+}
+
+/**
+ * `@mcp-b/webmcp-polyfill` copies `navigator.modelContext` onto `document` and
+ * returns when the navigator surface already exists. Chrome 148's stub would
+ * then block a real polyfill. Shadow the stub so the polyfill can install
+ * `document.modelContext` + `modelContextTesting`.
+ */
+export function shadowIncompleteNavigatorContext(): void {
+  if (typeof document === "undefined" || typeof navigator === "undefined") return;
+  if (document.modelContext) return;
+  const nav = navigator.modelContext as unknown as ModelContextLike | undefined;
+  if (!nav || typeof nav.registerTool !== "function") return;
+  if (isListable(nav)) return;
+  try {
+    Object.defineProperty(navigator, "modelContext", {
+      configurable: true,
+      enumerable: true,
+      writable: true,
+      value: undefined,
+    });
+  } catch {
+    // Native host objects may reject defineProperty.
+  }
+}
+
+function polyfillEnabledFromEnv(): boolean {
+  return (
+    typeof process !== "undefined" && process.env.NEXT_PUBLIC_WEBMCP_POLYFILL === "1"
   );
 }
 
@@ -74,11 +120,7 @@ export function createNativeAdapter(): WebmcpAdapter | null {
       try {
         const result = ctx.registerTool(def, { signal: local.signal });
         const resolved = isThenable(result) ? await result : result;
-        if (
-          resolved &&
-          typeof resolved === "object" &&
-          "unregister" in resolved
-        ) {
+        if (resolved && typeof resolved === "object" && "unregister" in resolved) {
           handles.set(def.name, resolved);
         }
       } catch (error) {
@@ -111,6 +153,7 @@ export function createNativeAdapter(): WebmcpAdapter | null {
 export async function createPolyfillAdapter(): Promise<WebmcpAdapter | null> {
   if (typeof window === "undefined") return null;
   try {
+    shadowIncompleteNavigatorContext();
     const mod = await import("@mcp-b/global");
     if (typeof mod.initializeWebModelContext === "function") {
       mod.initializeWebModelContext({ installTestingShim: true });
@@ -126,18 +169,21 @@ export async function createPolyfillAdapter(): Promise<WebmcpAdapter | null> {
 export async function resolveAdapter(options?: {
   preferPolyfill?: boolean;
 }): Promise<WebmcpAdapter> {
-  const native = createNativeAdapter();
-  if (native) return native;
+  const preferPolyfill = options?.preferPolyfill ?? polyfillEnabledFromEnv();
 
-  const preferPolyfill =
-    options?.preferPolyfill ??
-    (typeof process !== "undefined" &&
-      process.env.NEXT_PUBLIC_WEBMCP_POLYFILL === "1");
+  // Canonical native must win so ChatGPT / Chrome 149 agents see Chromium tools.
+  if (hasCanonicalNativeContext()) {
+    const native = createNativeAdapter();
+    if (native) return native;
+  }
 
   if (preferPolyfill) {
     const polyfill = await createPolyfillAdapter();
     if (polyfill) return polyfill;
   }
+
+  const native = createNativeAdapter();
+  if (native) return native;
 
   return createNoopAdapter();
 }
