@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useLiveQuery } from "dexie-react-hooks";
 import { WebmcpStatusBadge } from "./WebmcpStatusBadge";
 import { useAnalysisStatus } from "@/components/providers/AnalysisStatusProvider";
+import { BrandLogo, BrandMark } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui";
 import { formatAnalysisStatus } from "@/lib/analysis/status-copy";
 import { frictionRepo, journeyRepo } from "@/lib/db/repositories";
@@ -57,28 +58,24 @@ export function DashboardSidebar() {
   return (
     <aside className="flex w-full shrink-0 flex-col border-b border-border bg-surface lg:sticky lg:top-0 lg:h-dvh lg:w-[15.5rem] lg:overflow-hidden lg:border-b-0 lg:border-r">
       <div className="flex items-center justify-between gap-3 px-4 py-4 lg:block lg:px-5 lg:pt-6 lg:pb-5">
-        <Link href="/overview" className="flex items-center gap-2.5">
-          <span
-            aria-hidden="true"
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-accent-ink"
-          >
-            <BrandMark />
-          </span>
-          <span>
-            <p className="font-sans text-base font-semibold tracking-tight">ToolGap</p>
-            <p className="hidden text-[11px] text-muted lg:block">Capability intelligence</p>
-          </span>
-        </Link>
+        <BrandLogo
+          href="/overview"
+          preload
+          subtitle="Capability intelligence"
+          wordmarkClassName="font-display text-base font-semibold tracking-tight text-foreground"
+        />
         <div className="lg:mt-4">
           <WebmcpStatusBadge />
         </div>
       </div>
 
-      <nav aria-label="Dashboard" className="px-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:px-3">
+      <nav
+        aria-label="Dashboard"
+        className="px-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:px-3"
+      >
         <ul className="flex gap-1 overflow-x-auto pb-2 lg:flex-col lg:gap-1 lg:overflow-visible lg:pb-0">
           {NAV.map((item) => {
-            const active =
-              pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             const Icon = item.icon;
             return (
               <li key={item.href} className="shrink-0">
@@ -109,17 +106,15 @@ export function DashboardSidebar() {
         >
           {analysis.pending ? "Analyzing…" : "Run analysis"}
         </Button>
-        <div className="space-y-0.5 text-xs leading-relaxed text-muted" aria-live="polite">
+        <div
+          className="space-y-0.5 text-xs leading-relaxed text-muted"
+          aria-live="polite"
+        >
           <p>{status.primary}</p>
           {status.secondary ? <p>{status.secondary}</p> : null}
         </div>
         <div className="flex items-center gap-3 rounded-xl border border-border bg-surface-muted/70 px-3 py-2.5">
-          <span
-            aria-hidden="true"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-[11px] font-semibold text-accent-ink"
-          >
-            TG
-          </span>
+          <BrandMark size={32} alt="" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">ToolGap Workspace</p>
             <Link href="/store" className="text-xs text-accent hover:underline">
@@ -132,26 +127,45 @@ export function DashboardSidebar() {
   );
 }
 
-function BrandMark() {
-  return (
-    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true">
-      <path
-        d="M6.5 5.5h7M10 5.5v9M7.5 14.5h5"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 function OverviewIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 20 20" className={className} fill="none" aria-hidden="true">
-      <rect x="3" y="3" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-      <rect x="11" y="3" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-      <rect x="3" y="11" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-      <rect x="11" y="11" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+      <rect
+        x="3"
+        y="3"
+        width="6"
+        height="6"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <rect
+        x="11"
+        y="3"
+        width="6"
+        height="6"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <rect
+        x="3"
+        y="11"
+        width="6"
+        height="6"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <rect
+        x="11"
+        y="11"
+        width="6"
+        height="6"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
     </svg>
   );
 }
@@ -192,7 +206,12 @@ function RecommendationsIcon({ className }: { className?: string }) {
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
-      <path d="M7.5 8h5M7.5 11h3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M7.5 8h5M7.5 11h3.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }

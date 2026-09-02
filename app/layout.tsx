@@ -24,6 +24,7 @@ const newsreader = Newsreader({
 export const metadata: Metadata = {
   title: "ToolGap",
   description: "Your website learns what agents need next.",
+  applicationName: "ToolGap",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
