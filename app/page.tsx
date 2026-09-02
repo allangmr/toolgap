@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui";
-import { HeroCoastalVideo } from "@/components/viz/HeroCoastalVideo";
+import { HeroProductVisual } from "@/components/viz/HeroProductVisual";
 import { SignalChainHero } from "@/components/viz/SignalChainHero";
 import { seedAllScenarios } from "@/lib/seed/scenarios";
 import { runAnalysis } from "@/lib/analysis/pipeline";
@@ -89,8 +89,8 @@ export default function HomePage() {
         </div>
 
         <div className="relative">
-          <HeroCoastalVideo />
-          <div className="landing-glass relative z-10 -mt-12 ml-4 max-w-[23rem] p-5 md:-ml-10 md:-mt-20">
+          <HeroProductVisual />
+          <div className="landing-glass relative z-10 -mt-10 ml-4 max-w-[23rem] p-5 md:-ml-10 md:-mt-14">
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
               Observed journey
             </p>
@@ -143,10 +143,10 @@ export default function HomePage() {
           </p>
           <div className="mt-14 overflow-hidden rounded-lg border border-border shadow-[var(--shadow)]">
             <Image
-              src="/media/hero-coastal-ref-03-promenade.jpg"
-              alt="Sunlit coastal promenade at golden hour"
-              width={1920}
-              height={1280}
+              src="/media/hero-product-gap.jpg"
+              alt="ToolGap diagnosing a compare_products capability gap from a repeated get_product journey"
+              width={1600}
+              height={1200}
               className="h-auto w-full object-cover"
             />
           </div>
