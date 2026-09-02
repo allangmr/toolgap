@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createNativeAdapter,
   createNoopAdapter,
+  hasCanonicalNativeContext,
   resolveAdapter,
+  shadowIncompleteNavigatorContext,
 } from "@/lib/webmcp/adapter";
 import type { NativeToolDefinition } from "@/lib/webmcp/types";
 
@@ -52,6 +54,19 @@ vi.mock("@mcp-b/global", () => ({
   },
 }));
 
+function installNavigatorOnly(ctx: {
+  registerTool: ReturnType<typeof vi.fn>;
+  unregisterTool?: ReturnType<typeof vi.fn>;
+  getTools?: ReturnType<typeof vi.fn>;
+}): void {
+  Reflect.deleteProperty(document, "modelContext");
+  Object.defineProperty(navigator, "modelContext", {
+    value: ctx,
+    configurable: true,
+    writable: true,
+  });
+}
+
 describe("webmcp adapter selection", () => {
   afterEach(() => {
     clearModelContext();
@@ -65,7 +80,7 @@ describe("webmcp adapter selection", () => {
     expect(adapter.available).toBe(false);
   });
 
-  it("selects native when navigator.modelContext exists", async () => {
+  it("selects native when document.modelContext exists", async () => {
     installModelContext({
       registerTool: vi.fn(),
       unregisterTool: vi.fn(),
@@ -75,11 +90,38 @@ describe("webmcp adapter selection", () => {
     expect(adapter.available).toBe(true);
   });
 
+  it("keeps canonical native even when preferPolyfill is set", async () => {
+    installModelContext({
+      registerTool: vi.fn(),
+      unregisterTool: vi.fn(),
+    });
+    const adapter = await resolveAdapter({ preferPolyfill: true });
+    expect(adapter.kind).toBe("native");
+  });
+
   it("selects polyfill when native is missing and preferPolyfill is set", async () => {
     clearModelContext();
     const adapter = await resolveAdapter({ preferPolyfill: true });
     expect(adapter.kind).toBe("polyfill");
     expect(adapter.available).toBe(true);
+  });
+
+  it("does not treat a navigator-only stub as native when polyfill is preferred", async () => {
+    installNavigatorOnly({
+      registerTool: vi.fn(),
+      unregisterTool: vi.fn(),
+    });
+    const adapter = await resolveAdapter({ preferPolyfill: true });
+    expect(adapter.kind).toBe("polyfill");
+  });
+
+  it("uses navigator-only native when polyfill is off", async () => {
+    installNavigatorOnly({
+      registerTool: vi.fn(),
+      unregisterTool: vi.fn(),
+    });
+    const adapter = await resolveAdapter({ preferPolyfill: false });
+    expect(adapter.kind).toBe("native");
   });
 
   it("createNoopAdapter is unavailable", async () => {
@@ -92,6 +134,29 @@ describe("webmcp adapter selection", () => {
   it("createNativeAdapter returns null without modelContext", () => {
     clearModelContext();
     expect(createNativeAdapter()).toBeNull();
+  });
+
+  it("hasCanonicalNativeContext is true only for document.modelContext", () => {
+    installNavigatorOnly({
+      registerTool: vi.fn(),
+      unregisterTool: vi.fn(),
+    });
+    expect(hasCanonicalNativeContext()).toBe(false);
+    installModelContext({
+      registerTool: vi.fn(),
+      unregisterTool: vi.fn(),
+    });
+    expect(hasCanonicalNativeContext()).toBe(true);
+  });
+
+  it("shadows a navigator-only stub that cannot list tools", () => {
+    installNavigatorOnly({
+      registerTool: vi.fn(),
+      unregisterTool: vi.fn(),
+    });
+    shadowIncompleteNavigatorContext();
+    expect(navigator.modelContext).toBeUndefined();
+    expect(document.modelContext).toBeUndefined();
   });
 });
 

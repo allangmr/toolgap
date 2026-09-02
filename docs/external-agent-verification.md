@@ -17,10 +17,10 @@ They are useful regression checks. None of them is a model deciding what to call
 
 ## What is already verified
 
-Discovery and transport on the deployed build. In a fresh incognito window on `https://toolgap.netlify.app/store`, the status badge reads `WebMCP polyfill`, and this returns all six store tools:
+Discovery and transport on the deployed build. In ChatGPT's in-app browser or Chrome 149+ with WebMCP, the badge reads `WebMCP native`. In Chrome without a complete `document.modelContext`, the badge reads `WebMCP polyfill`. On `/store` this returns all six store tools:
 
 ```js
-(await document.modelContext.getTools()).map((t) => t.name)
+(await document.modelContext.getTools()).map((t) => t.name);
 // ['add_to_cart','complete_checkout','get_availability','get_cart','get_product','search_products']
 ```
 
@@ -36,7 +36,7 @@ Pick one. Each needs something installed on your machine that this repository ca
 
 **Chrome plus the MCP-B extension.** The deployment already loads the `@mcp-b/global` polyfill, which serves tools over `TabServerTransport`. Install the MCP-B browser extension and connect ChatGPT, Claude, or Cursor as the MCP client. This is the most likely path to work today.
 
-**Chrome with native WebMCP.** Enable WebMCP in Chrome Canary or behind its flag, then use a client that speaks it. `resolveAdapter` in `lib/webmcp/adapter.ts` prefers the native implementation whenever `document.modelContext` or `navigator.modelContext` already exists, so the polyfill flag does not interfere.
+**Chrome with native WebMCP.** Enable WebMCP in Chrome 149+ (`chrome://flags/#enable-webmcp-testing`) or use ChatGPT's in-app browser. `resolveAdapter` prefers `document.modelContext` whenever that canonical surface exists. A navigator-only stub does not skip the polyfill.
 
 **ChatGPT in-app browser.** Only if that browser exposes WebMCP to its own agent. If it does not, record that as a limitation. Do not stage a call by hand and describe it as a model call.
 

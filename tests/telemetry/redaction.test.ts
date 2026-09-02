@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { paramKeyPaths, redactValue } from "@/lib/telemetry/redaction";
+import { paramKeyPaths, redactValue, safeJsonSchema } from "@/lib/telemetry/redaction";
+import { z } from "zod";
 import { percentile } from "@/lib/shared/math";
 
 describe("redaction", () => {
@@ -16,9 +17,7 @@ describe("redaction", () => {
   });
 
   it("applies extra redaction keys on top of the defaults", () => {
-    const result = redactValue({ nickname: "Ada", productId: "hp-01" }, [
-      "nickname",
-    ]);
+    const result = redactValue({ nickname: "Ada", productId: "hp-01" }, ["nickname"]);
     expect(result.nickname).toBe("[redacted]");
     expect(result.productId).toBe("hp-01");
   });
@@ -32,6 +31,22 @@ describe("redaction", () => {
         productIds: ["a", "b"],
       }),
     ).toEqual(["category", "maxPrice", "nested.ram", "productIds"]);
+  });
+
+  it("strips $schema from JSON Schema for native WebMCP", () => {
+    const schema = safeJsonSchema(
+      z.object({
+        q: z.string().optional(),
+        maxPrice: z.number().optional(),
+      }),
+    );
+    expect(schema.$schema).toBeUndefined();
+    expect(schema.$id).toBeUndefined();
+    expect(schema.type).toBe("object");
+    expect(schema.properties).toMatchObject({
+      q: { type: "string" },
+      maxPrice: { type: "number" },
+    });
   });
 });
 

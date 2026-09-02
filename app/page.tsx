@@ -17,7 +17,7 @@ const STEPS = [
   {
     number: "1",
     title: "Agents use your tools",
-    copy: "Fieldkit Market exposes WebMCP tools through navigator.modelContext. Every agent call is typed telemetry.",
+    copy: "Fieldkit Market exposes WebMCP tools through document.modelContext. Every agent call is typed telemetry.",
   },
   {
     number: "2",
