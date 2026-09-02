@@ -1,5 +1,7 @@
 # Demo video script
 
+Published: **https://www.youtube.com/watch?v=mUor09Qkf40** (2:48, public, with audio).
+
 Target runtime: **2:40–2:48**. Hard cut by **2:48**. No title card, logo sting, or music. Silent picture with English captions; original English narration is added in post.
 
 Record against the live UI (fresh Chrome profile, empty IndexedDB):

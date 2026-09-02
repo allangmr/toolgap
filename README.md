@@ -22,7 +22,7 @@ Start at the root for the walkthrough. The dashboard is at `/overview` and the i
 
 ## Demo video
 
-[https://www.youtube.com/watch?v=mUor09Qkf40](https://www.youtube.com/watch?v=mUor09Qkf40)
+[https://www.youtube.com/watch?v=mUor09Qkf40](https://www.youtube.com/watch?v=mUor09Qkf40) — 2:48, public, with audio.
 
 ## Requirements
 
