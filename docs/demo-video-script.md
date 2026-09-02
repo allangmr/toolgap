@@ -1,51 +1,48 @@
 # Demo video script
 
-Target length is 2:50. Public YouTube upload with narrated audio. Record at the deployed URL in a fresh browser profile so the story starts from an empty database.
+Target length is 2:30. Public YouTube upload. Record with:
 
-## Scene 1. Hook (0:00 to 0:15)
+```bash
+pnpm dev
+BASE_URL=http://localhost:3000 node scripts/hackathon-demo-video.mjs
+```
 
-Screen: landing page at `/`.
+The script drives the live app, overlays captions, and writes `toolgap-hackathon-demo.mp4` (1080p, max 150s).
 
-Narration:
+## Scene 1. Dashboard (0:00 to 0:22)
 
-> AI agents already shop on your website. When your site speaks WebMCP, every agent action is a typed tool call. ToolGap watches those calls and answers one question no analytics tool can: which capability is your site missing?
+Screen: landing at `/`, intro card, then **View demo with sample data** into `/overview`.
 
-## Scene 2. Agents using the store (0:15 to 0:45)
+> Del landing al dashboard. ToolGap carga 23 sesiones de agentes por el mismo canal WebMCP.
 
-Screen: click "Load sample data", then open `/store` briefly, then the Sessions page.
+## Scene 2. The agent reads the page (0:22 to 0:50)
 
-Narration:
+Screen: `/store`, search `headphones`, open Auralis Pulse ANC, Soundform Drift, EchoPeak Studio Pro.
 
-> This is Fieldkit Market, a demo store that exposes WebMCP tools like search, get product, and checkout. I just replayed twenty-three sample agent sessions against it, driven through the same WebMCP path a real agent uses. ToolGap recorded every tool call, rebuilt each journey, and scored the friction.
+> El agente lee Fieldkit Market con tools tipados: search_products, luego get_product una y otra vez porque no hay compare.
 
-## Scene 3. The gap (0:45 to 1:25)
+## Scene 3. Human reviews the agent flow (0:50 to 1:20)
 
-Screen: Gaps page, open the compare-products gap, scroll the evidence panel.
+Screen: Traffic → Journeys, then the compare-products gap → Evidence → a supporting session timeline.
 
-Narration:
+> El humano compara el journey reconstruido. Varios agentes inspeccionaron productos en serie. Falta `compare_products`.
 
-> Here is the payoff. Several agents fetched product after product, back to back. They were comparing headphones by hand because the site has no compare tool. ToolGap detected that pattern, mapped it to a COMPARE capability gap, and backed it with the exact sessions as evidence. Notice the observational gaps too: ToolGap reports what it cannot safely automate instead of guessing.
+## Scene 4. Human modifies the flow (1:20 to 1:55)
 
-## Scene 4. Publish and measure (1:25 to 2:20)
+Screen: Build recommendation, edit description and returned fields, Save, Run simulation, Compare.
 
-Screen: Build recommendation, Simulate tab, Approve, Publish dialog, then `/store` showing the tool registered, then Published page with before/after.
+> Tú das forma a la capability (template read-only). Simulas y comparas el flujo actual contra search_products → compare_products.
 
-Narration:
+## Scene 5. The new agent flow (1:55 to 2:30)
 
-> One click builds a recommendation from a safe, read-only template. I simulate it against the recorded journeys, approve it, and publish. No deploy, no release: the tool registers through navigator.modelContext right now, in this tab. Back on the store, compare products is live for the next agent. After new traffic arrives, ToolGap measures before and after: fewer calls, shorter journeys, higher completion.
+Screen: Approve, Confirm publish, Published before/after, Traffic journeys, a session that calls `compare_products`.
 
-## Scene 5. Close (2:20 to 2:50)
-
-Screen: Overview with sparklines, then the landing page again.
-
-Narration:
-
-> That is the loop. Agents reveal the gap through WebMCP telemetry, a human approves the fix, and the same WebMCP channel ships it seconds later. ToolGap: your website learns what agents need next.
+> Publicas sin deploy. El tool queda vivo en WebMCP. El agente ya no compara a mano.
 
 ## Recording checklist
 
-- [ ] Fresh profile or incognito so `/` starts empty
-- [ ] 1080p screen recording, cursor visible
-- [ ] Narration recorded or AI-read from this script
-- [ ] Under 3 minutes total
+- [ ] Fresh Chrome profile (the script deletes its temp profile each run)
+- [ ] 1080p, cursor visible
+- [ ] Captions in the recording (narration optional)
+- [ ] Under 2:30 total
 - [ ] Uploaded public on YouTube, link pasted into Devpost
