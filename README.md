@@ -20,6 +20,10 @@ What people and agents now do together: agents get the tool they were fumbling t
 
 Start at the root for the walkthrough. The dashboard is at `/overview` and the instrumented store is at `/store`.
 
+## Demo video
+
+[https://www.youtube.com/watch?v=mUor09Qkf40](https://www.youtube.com/watch?v=mUor09Qkf40)
+
 ## Requirements
 
 - Node.js 22+

@@ -62,10 +62,11 @@ Screen: Overview metrics / sparklines, then the landing page. End on the ToolGap
 
 ## Recording checklist
 
-- [ ] 1920×1080, cursor visible
-- [ ] Fresh profile so IndexedDB starts empty
-- [ ] Live deployed UI (`https://toolgap.netlify.app`), full-size, no fake inserts
-- [ ] English captions only
-- [ ] No title card, logo sting, or music
-- [ ] 2:40–2:48, hard cut by 2:48
-- [ ] Do not claim live traffic changed unless the Published view actually shows newly processed traffic (use **Load post-publish traffic**, then **Compute before/after**)
+- [x] 1920×1080, cursor visible
+- [x] Fresh profile so IndexedDB starts empty
+- [x] Live deployed UI (`https://toolgap.netlify.app`), full-size, no fake inserts
+- [x] English captions only
+- [x] No title card, logo sting, or music
+- [x] 2:40–2:48, hard cut by 2:48
+- [x] Do not claim live traffic changed unless the Published view actually shows newly processed traffic (use **Load post-publish traffic**, then **Compute before/after**)
+- [x] Public YouTube: https://www.youtube.com/watch?v=mUor09Qkf40
