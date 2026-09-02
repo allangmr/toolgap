@@ -36,10 +36,7 @@ export function hashParams(input: Record<string, unknown>): string {
   return `h${Math.abs(hash)}`;
 }
 
-export function paramKeyPaths(
-  input: Record<string, unknown>,
-  prefix = "",
-): string[] {
+export function paramKeyPaths(input: Record<string, unknown>, prefix = ""): string[] {
   const keys: string[] = [];
   for (const [key, value] of Object.entries(input)) {
     const path = prefix ? `${prefix}.${key}` : key;
@@ -65,9 +62,16 @@ function sortKeys(value: unknown): unknown {
   return value;
 }
 
+export function sanitizeWebmcpJsonSchema(
+  schema: Record<string, unknown>,
+): Record<string, unknown> {
+  const { $schema: _schema, $id: _id, ...rest } = schema;
+  return rest;
+}
+
 export function safeJsonSchema(schema: z.ZodType): Record<string, unknown> {
   try {
-    return z.toJSONSchema(schema) as Record<string, unknown>;
+    return sanitizeWebmcpJsonSchema(z.toJSONSchema(schema) as Record<string, unknown>);
   } catch {
     return { type: "object", additionalProperties: true };
   }
