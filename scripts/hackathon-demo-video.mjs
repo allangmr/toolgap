@@ -202,10 +202,43 @@ async function clickTab(page, label) {
   await click(page, page.getByRole("tab", { name: label, exact: true }));
 }
 
+let compareGapId = "";
+
 async function clickWorkflowStep(page, label) {
   const nav = page.getByRole("navigation", { name: "Gap workflow" });
   await nav.waitFor({ timeout: 20_000 });
   await click(page, nav.getByRole("button", { name: new RegExp(label, "i") }));
+}
+
+async function rememberCompareGap(page) {
+  const match = new URL(page.url()).pathname.match(/\/gaps\/([^/?]+)/);
+  if (match) compareGapId = match[1];
+}
+
+async function ensureEvidence(page) {
+  const heading = page.getByRole("heading", { name: "You review the evidence" }).first();
+  if (await heading.isVisible().catch(() => false)) return;
+
+  const evidenceBtn = page
+    .getByRole("navigation", { name: "Gap workflow" })
+    .getByRole("button", { name: /Evidence/i });
+  if (await evidenceBtn.isVisible().catch(() => false)) {
+    await click(page, evidenceBtn);
+    try {
+      await heading.waitFor({ state: "visible", timeout: 8_000 });
+      return;
+    } catch {
+      /* URL fallback below */
+    }
+  }
+
+  if (!compareGapId) await rememberCompareGap(page);
+  if (compareGapId) {
+    await page.goto(`${BASE_URL}/gaps/${compareGapId}?step=evidence`, {
+      waitUntil: "domcontentloaded",
+    });
+  }
+  await waitHeading(page, "You review the evidence");
 }
 
 async function scrollBy(page, dy) {
@@ -227,22 +260,23 @@ async function openCompareGap(page) {
   );
   await page.waitForURL("**/gaps/**");
   await page.getByRole("navigation", { name: "Gap workflow" }).waitFor();
+  await rememberCompareGap(page);
 }
 
 async function showHeadphonesSession(page) {
+  await ensureEvidence(page);
   const links = page.getByRole("link", { name: /^Session / });
   await links.first().waitFor({ timeout: 15_000 });
   const n = await links.count();
   for (let i = 0; i < n; i++) {
     await click(page, links.nth(i));
     await page.waitForURL("**/sessions/**");
-    const marker = page.getByText("hp-01", { exact: true });
+    const marker = page.getByText(/hp-0[123]/).first();
     try {
       await marker.waitFor({ state: "visible", timeout: 2_500 });
       return true;
     } catch {
-      await page.goBack({ waitUntil: "domcontentloaded" });
-      await waitHeading(page, "You review the evidence");
+      await ensureEvidence(page);
     }
   }
   return false;
@@ -463,8 +497,7 @@ async function record() {
       "Repeated get_product calls because the site had no comparison tool.",
     );
     await openCompareGap(page);
-    await clickWorkflowStep(page, "Evidence");
-    await waitHeading(page, "You review the evidence");
+    await ensureEvidence(page);
     await caption(
       page,
       "03  Capability gap",
@@ -510,8 +543,7 @@ async function record() {
     }
     await scrollBy(page, 240);
     await sleep(500);
-    await page.goBack({ waitUntil: "domcontentloaded" });
-    await waitHeading(page, "You review the evidence");
+    await ensureEvidence(page);
     const supporting = page.getByText(/supporting journeys/i).first();
     if (await supporting.isVisible().catch(() => false)) {
       await moveTo(page, supporting);
@@ -542,8 +574,7 @@ async function record() {
       "Safe, read-only template. Agents cannot publish.",
     );
     await openCompareGap(page);
-    await clickWorkflowStep(page, "Evidence");
-    await waitHeading(page, "You review the evidence");
+    await ensureEvidence(page);
     await click(page, page.getByRole("button", { name: "Build recommendation" }));
     await waitHeading(page, "You shape the capability");
     await page.getByRole("heading", { name: "compare_products" }).waitFor({ timeout: 15_000 });
